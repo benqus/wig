@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+    <script src="wig.js"></script>
+
+    <script>
+
+        var MyView = wig.View.extend({
+            className: 'MyView'
+        });
+
+        var MyOtherView = wig.View.extend({
+            className: 'MyOtherView',
+
+            mapping: {
+                child: 'section'
+            },
+
+            getMarkup: function () {
+                return [
+                    '<section>',
+                        this.get('a'),
+                    '</section>'
+                ];
+            },
+
+            render: function () {
+                this.addView({
+                    ViewClass: MyView,
+                    attributes: {
+                        a: 'a'
+                    }
+                });
+                this.addView({
+                    ViewClass: MyView,
+                    id: 'child',
+                    attributes: {
+                        b: 'b'
+                    }
+                });
+            }
+        });
+
+        var myOtherView = new MyOtherView();
+
+        window.onload = function () {
+            wig.renderView(myOtherView, document.getElementById('main'));
+
+            myOtherView.getView(0);
+            myOtherView.update();
+            myOtherView.set({
+                a: 'b'
+            });
+            myOtherView.update();
+        };
+
+    </script>
+</head>
+<body>
+    <div id="main"></div>
+</body>
+</html>

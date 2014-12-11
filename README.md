@@ -1,4 +1,4 @@
-wig
+Wig
 ===
 
 Rendering framework

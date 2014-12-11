@@ -1,0 +1,13 @@
+(function (global, decorator) {
+    'use strict';
+
+    var wig = {};
+
+    decorator(wig);
+
+    if (global.wig) {
+        wig._Wig = global.wig;
+    }
+
+    global.wig = wig;
+}(window, function (wig) {
