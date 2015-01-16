@@ -1,6 +1,6 @@
 var ViewDataAttribute = 'data-' + DATA_ATTRIBUTE;
 
-var DOMEventProxy = wig.DOMEventProxy = {
+var UIEventProxy = wig.UIEventProxy = {
 
     listeners: [],
 
@@ -29,7 +29,7 @@ var DOMEventProxy = wig.DOMEventProxy = {
             view = ViewManager.getView(viewID);
 
         if (view) {
-            return DOMEventProxy.findFirstViewAndFireEvent(event, view);
+            return UIEventProxy.findFirstViewAndFireEvent(event, view);
         }
     },
 

@@ -1,5 +1,5 @@
 /**
-* wig - 0.1.0
+* Wig - 0.1.0
 */
 (function (global, decorator) {
     'use strict';
@@ -114,61 +114,6 @@ var DOM = wig.DOM = {
         }
     }
 
-};
-
-var ViewDataAttribute = 'data-' + DATA_ATTRIBUTE;
-
-var DOMEventProxy = wig.DOMEventProxy = {
-
-    listeners: [],
-
-    findFirstViewAndFireEvent: function (event, view) {
-        do {
-            // find the first view that is listening to the same type of event
-            if (view.hasEvent(event)) {
-                view.fireDOMEvent(event);
-                return;
-            }
-
-            view = ViewManager.getParentView(view);
-        } while (view);
-    },
-
-    addListener: function (node, type) {
-        node.addEventListener(type, this.listener);
-    },
-
-    removeListener: function (node, type) {
-        node.removeEventListener(type, this.listener);
-    },
-
-    listener: function (event) {
-        var viewID = DOM.findClosestViewNode(event.target, ViewDataAttribute),
-            view = ViewManager.getView(viewID);
-
-        if (view) {
-            return DOMEventProxy.findFirstViewAndFireEvent(event, view);
-        }
-    },
-
-    startListenTo: function (type) {
-        if (!this.isListeningTo(type)) {
-            this.listeners.push(type);
-            this.addListener(document, type);
-        }
-    },
-
-    stopListenTo: function (type) {
-        var index = this.listeners.indexOf(type);
-        if (index > -1) {
-            this.removeListener(document, type);
-            this.listeners.splice(index, 1);
-        }
-    },
-
-    isListeningTo: function (type) {
-        return (this.listeners.indexOf(type) > -1);
-    }
 };
 
 
@@ -429,6 +374,61 @@ var Template = {
 };
 
 wig.Template = Template;
+
+var ViewDataAttribute = 'data-' + DATA_ATTRIBUTE;
+
+var UIEventProxy = wig.UIEventProxy = {
+
+    listeners: [],
+
+    findFirstViewAndFireEvent: function (event, view) {
+        do {
+            // find the first view that is listening to the same type of event
+            if (view.hasEvent(event)) {
+                view.fireDOMEvent(event);
+                return;
+            }
+
+            view = ViewManager.getParentView(view);
+        } while (view);
+    },
+
+    addListener: function (node, type) {
+        node.addEventListener(type, this.listener);
+    },
+
+    removeListener: function (node, type) {
+        node.removeEventListener(type, this.listener);
+    },
+
+    listener: function (event) {
+        var viewID = DOM.findClosestViewNode(event.target, ViewDataAttribute),
+            view = ViewManager.getView(viewID);
+
+        if (view) {
+            return UIEventProxy.findFirstViewAndFireEvent(event, view);
+        }
+    },
+
+    startListenTo: function (type) {
+        if (!this.isListeningTo(type)) {
+            this.listeners.push(type);
+            this.addListener(document, type);
+        }
+    },
+
+    stopListenTo: function (type) {
+        var index = this.listeners.indexOf(type);
+        if (index > -1) {
+            this.removeListener(document, type);
+            this.listeners.splice(index, 1);
+        }
+    },
+
+    isListeningTo: function (type) {
+        return (this.listeners.indexOf(type) > -1);
+    }
+};
 
 var ViewManager = {
 
@@ -866,7 +866,7 @@ extend(View.prototype, {
 
         if (this._customEvents[type].indexOf(selector) === -1) {
             node = this.find(selector);
-            DOMEventProxy.addListener(node, type);
+            UIEventProxy.addListener(node, type);
             this._customEvents[type].push(selector || '');
         }
     },
@@ -875,7 +875,7 @@ extend(View.prototype, {
         var selector = this._customEvents[type],
             node = this.find(selector);
 
-        DOMEventProxy.removeListener(node, type);
+        UIEventProxy.removeListener(node, type);
     },
 
     undelegateAll: function () {
@@ -883,7 +883,7 @@ extend(View.prototype, {
     },
 
     listenFor: function (type) {
-        DOMEventProxy.startListenTo(type);
+        UIEventProxy.startListenTo(type);
     },
 
     fireDOMEvent: function (event) {

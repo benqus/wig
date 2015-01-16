@@ -14,7 +14,7 @@ extend(View.prototype, {
 
         if (this._customEvents[type].indexOf(selector) === -1) {
             node = this.find(selector);
-            DOMEventProxy.addListener(node, type);
+            UIEventProxy.addListener(node, type);
             this._customEvents[type].push(selector || '');
         }
     },
@@ -23,7 +23,7 @@ extend(View.prototype, {
         var selector = this._customEvents[type],
             node = this.find(selector);
 
-        DOMEventProxy.removeListener(node, type);
+        UIEventProxy.removeListener(node, type);
     },
 
     undelegateAll: function () {
@@ -31,7 +31,7 @@ extend(View.prototype, {
     },
 
     listenFor: function (type) {
-        DOMEventProxy.startListenTo(type);
+        UIEventProxy.startListenTo(type);
     },
 
     fireDOMEvent: function (event) {
