@@ -24,10 +24,6 @@
                         amount: amount
                     });
                 }
-            },
-
-            focus: function (event) {
-                //debugger;
             }
         },
 
