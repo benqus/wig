@@ -15,15 +15,17 @@ module.exports = function (grunt) {
         concat: {
             build: {
                 options: {
-                    banner: banner
+                    banner: banner,
+                    separator: '\n\n'
                 },
                 src: [
                     './src/intro',
 
                     './src/static.js',
+                    './src/*.js',
+                    './src/registry/**/*.js',
                     './src/methods/**/*.js',
                     './src/View/**/*.js',
-                    './src/exports.js',
 
                     './src/outro'
                 ],
@@ -53,12 +55,27 @@ module.exports = function (grunt) {
         },
 
         mocha: {
-            test: {
+            dev: {
+                src: ['test/spec-runner.html']
+            },
+            ci: {
                 options: {
                     reporter: 'XUnit'
                 },
                 src: ['test/spec-runner.html'],
                 dest: 'test-results.xml'
+            }
+        },
+
+        watch: {
+            dev: {
+                files: [
+                    'Gruntfile.js',
+                    'src/**/*.js',
+                    'test/**/*.js',
+                    'test/spec-runner.html'
+                ],
+                tasks: ['test']
             }
         }
     });
@@ -67,9 +84,11 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
     grunt.registerTask('default', ['build']);
-    grunt.registerTask('test', ['jshint', 'mocha:dev']);
-    grunt.registerTask('build', ['jshint', 'concat']);
+    grunt.registerTask('dev', ['test', 'watch']);
+    grunt.registerTask('build', [/*'jshint',*/ 'concat']);
+    grunt.registerTask('test', ['build', 'mocha:dev']);
     grunt.registerTask('deploy', ['build', 'uglify', 'mocha:ci']);
 };

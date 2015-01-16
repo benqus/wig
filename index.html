@@ -9,33 +9,45 @@
     <script>
 
         var MyView = wig.View.extend({
-            className: 'MyView'
+            className: 'MyView',
+
+            template: '<button>click</button>',
+
+            events: {
+                click: function (e) {
+                    alert('MyView#' + this.getID());
+
+                    if (this.getID() === 'v0.child') {
+                        return false;
+                    }
+                }
+            }
         });
 
         var MyOtherView = wig.View.extend({
+            View: MyView,
+
             className: 'MyOtherView',
+
+            template: '<section>{{ a }}</section>',
 
             mapping: {
                 child: 'section'
             },
 
-            getMarkup: function () {
-                return [
-                    '<section>',
-                        this.get('a'),
-                    '</section>'
-                ];
+            events: {
+                click: function () {
+                    alert('MyOtherView#' + this.getID());
+                }
             },
 
             render: function () {
                 this.addView({
-                    ViewClass: MyView,
                     attributes: {
                         a: 'a'
                     }
                 });
                 this.addView({
-                    ViewClass: MyView,
                     id: 'child',
                     attributes: {
                         b: 'b'
@@ -49,8 +61,8 @@
         window.onload = function () {
             wig.renderView(myOtherView, document.getElementById('main'));
 
-            myOtherView.getView(0);
             myOtherView.update();
+
             myOtherView.set({
                 a: 'b'
             });

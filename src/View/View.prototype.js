@@ -4,158 +4,147 @@ extend(View.prototype, {
 
     className: 'View',
 
-    mapping: {},
+    defaults: {},
+
+    renderMap: {},
+
+    dataMap: {},
+
+    events: {},
+
+    View: View,
+
+    template: '',
+
+    initialize: function () {
+        var dataset = {};
+        dataset[DATA_ATTRIBUTE] = this.getID();
+        // assign classes and data attributes
+        DOM.initNode(this.getNode(), this.className, dataset);
+        // apply event listeners
+        Object.keys(this.events).forEach(this.listenFor, this);
+        // initialize children
+        this._children.forEach(this.initializeChild);
+    },
 
     get: function (attribute) {
         return this.attributes[attribute];
     },
-    getAttributes: function () {
-        return extend({}, this.attributes);
+
+    set: function (attributes) {
+        var overrides;
+
+        if (attributes && typeof attributes === 'object') {
+            overrides = this.parseAttributes(attributes);
+            extend(this.attributes, this.defaults, attributes, overrides);
+        }
     },
-    set: function (arg, value) {
-        setViewAttribute(arg, value, this.attributes);
-        this.update();
+
+    parseAttributes: function (newAttributes) {
+        return newAttributes;
     },
 
     getID: function () {
         return this._ID;
     },
 
-    getParentID: function () {
-        return this._PID;
-    },
-
-    initialize: function () {
-        var dataset = {};
-        dataset[DATA_ATTRIBUTE] = this.getID();
-        this.node = (this.node || document.createElement(this.tagName));
-        initNode(this.getNode(), this.className, dataset);
+    getAttributes: function () {
+        return extend({}, this.attributes);
     },
 
     getSelectorForChild: function (id) {
         var childView = this.getView(id),
             childID = childView.getID().split('.').pop();
-        return (this.mapping[childID] || this.mapping['*']);
+        return (this.renderMap[childID] || this.renderMap['*']);
     },
 
     getNode: function () {
         return this.node;
     },
+
     setNode: function (node) {
         this.node = node;
         this.initialize();
-        this.notifyAttach();
     },
 
-    addView: function (childOptions) {
-        var options = {},
-            parentID = this.getID(),
-            childID,
-            ViewClass;
+    find: function (selector) {
+        var node = this.getNode();
 
-        childOptions = (childOptions || {});
-        ViewClass = (childOptions.ViewClass || View);
-        childID = [
-            parentID,
-            (childOptions.id || this.children.length)
-        ].join('.');
-
-        delete childOptions.ViewClass;
-
-        return this.createView(ViewClass, options, childOptions, {
-            id: childID,
-            parentID: parentID
-        });
-    },
-    createView: function (ViewClass) {
-        var args = Array.prototype.slice.call(arguments, 1),
-            options = extend.apply(null, args),
-            view = new ViewClass(options);
-        this.children.push(view.getID());
-        return view;
-    },
-    getView: function (id) {
-        // if id is an array index instead of a child's ID
-        if (typeof id === 'number' && id < this.children.length) {
-            id = this.children[id];
+        if (!selector) {
+            return node;
         }
-        return getView(id);
-    },
-    updateView: function (id) {
-        var childView = this.getView(id);
-        if (childView) {
-            childView.update();
-        }
+
+        return DOM.getElement(node, selector);
     },
 
-    update: function () {
+    update: function (attributes) {
         this.notifyDetach();
-        updateView(this);
+        this.set(attributes);
+        ViewManager.updateView(this);
         this.notifyAttach();
     },
 
-    paintView: function (id) {
-        var childView = this.getView(id);
-        updateView(childView);
+    serialize: function () {
+        return this.attributes;
     },
+
     paint: function () {
         var node = this.getNode(),
-            // regenerate markup from template
-            html = this.getMarkup();
-
-        if (Array.isArray(html)) {
-            html = html.join('');
-        }
+            html = Template.compileTemplateForView(this);
 
         node.innerHTML = (html || '');
 
-        this.empty();
+        this._emptyAndPreserveChildAttributes();
         this.render();
-        this.children.forEach(this.paintView, this);
+        this._children.forEach(this.paintChildView, this);
     },
 
     empty: function () {
-        this.children.forEach(this.removeView, this);
-        this.children = [];
-    },
-    removeView: function (childViewID) {
-        var view = this.getView(childViewID),
-            attributes = view.getAttributes();
-
-        view.destroy();
-
-        return attributes;
+        this._children.forEach(this.removeView, this);
+        this._children = [];
     },
 
     notifyAttach: function () {
+        this.attached = true;
         this.onAttach();
-        this.children.forEach(function (childViewID) {
-            var childView = this.getView(childViewID);
-            childView.notifyAttach();
-        }, this);
+        this._children.forEach(ViewManager.notifyViewAboutAttach);
     },
 
     notifyDetach: function () {
+        this.attached = false;
         this.onDetach();
-        this.children.forEach(function (childViewID) {
-            var childView = this.getView(childViewID);
-            childView.notifyDetach();
-        }, this);
+        this._children.forEach(ViewManager.notifyViewAboutDetach);
     },
 
-    destroyView: function (childViewID) {
-        var childView = this.getView(childViewID);
-        childView.destroy();
+    remove: function () {
+        ViewManager.removeViewFromParent(this);
     },
 
     destroy: function () {
-        this.node = null;
-        this.children.forEach(this.destroyView, this);
-        delete ViewRegistry[this.getID()];
-    }
-});
+        var parentNode = this.node.parentNode;
+        this.undelegateAll();
+        this.notifyDetach();
 
-// user defined methods defaulting to NoOp
-['onDetach', 'onAttach', 'onDestroy', 'getMarkup', 'render'].forEach(function (method) {
-    View.prototype[method] = NoOp;
+        if (parentNode) {
+            parentNode.removeChild(this.node);
+        }
+
+        this._children.forEach(this.removeView, this);
+        this.node = null;
+        removeViewFromRegistries(this);
+    },
+
+    _serializeAndRemoveView: function (childViewID) {
+        var childView = this.getView(childViewID),
+            serializedChild = childView.serialize();
+
+        this._childAttributesBeforeUpdate.set(childViewID, serializedChild);
+        this.removeView(childViewID);
+    },
+
+    _emptyAndPreserveChildAttributes: function () {
+        this._childAttributesBeforeUpdate.empty();
+        this._children.forEach(this._serializeAndRemoveView, this);
+        this._children = [];
+    }
 });

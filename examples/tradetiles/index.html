@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>Trade tiles - Wig.js example</title>
+
+        <style>
+            .Button {
+                border: none;
+                border-radius: 3px;
+                margin: 0 5px;
+                cursor: pointer;
+            }
+            .Button.green {
+                background-color: lightgreen;
+            }
+            .Button.red {
+                background-color: firebrick;
+                color: aliceblue;
+            }
+            .Button > .action {
+                display: block;
+            }
+            .Button > sub:after {
+                content: '.';
+                display: inline;
+            }
+        </style>
+
+        <script src="../../wig.js"></script>
+
+        <script src="js/TradingApp.js"></script>
+        <script src="js/Button.js"></script>
+        <script src="js/Tile.js"></script>
+        <script src="js/TileManager.js"></script>
+
+        <script src="js/main.js"></script>
+    </head>
+    <body>
+        <div id="trade-app"></div>
+    </body>
+</html>

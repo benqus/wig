@@ -11,3 +11,4 @@
 
     global.wig = wig;
 }(window, function (wig) {
+    "use strict";

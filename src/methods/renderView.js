@@ -1,11 +1,11 @@
 /**
- * @namespace wig
+ * Renders the provided View instance into a DOM node.
  * @param   {View}    view
  * @param   {Element} node
  * @returns {View}
  */
 function renderView(view, node) {
-    node = selectNode(node);
+    node = wig.DOM.selectNode(node);
 
     view.setNode(node);
     view.paint();
@@ -13,3 +13,5 @@ function renderView(view, node) {
 
     return view;
 }
+
+wig.renderView = renderView;

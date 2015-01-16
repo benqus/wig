@@ -14,9 +14,13 @@
 
     global.wig = wig;
 }(window, function (wig) {
+    "use strict";
+
+var arrayIndexOf = Array.prototype.indexOf;
+
 var
     /**
-     * View ID
+     * ID
      * @static
      * @private
      * @type {number}
@@ -25,58 +29,609 @@ var
 
     /**
      * noop
+     * @static
      * @function
      */
     NoOp = function () {},
 
     /**
-     * Map of registered Views
-     * @type {object}
-     */
-    ViewRegistry = {},
-
-    /**
      * Data attribute wig attaches the View#_ID to.
+     * @static
+     * @constant
      * @type {string}
      */
     DATA_ATTRIBUTE = 'wig_view_id';
 
+wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
 
+// TODO: preserve focus after re-render on previously focused element ??? (set might have solved this)
+// - https://developer.mozilla.org/en-US/docs/Web/API/document.activeElement
+// - http://stackoverflow.com/questions/497094/how-do-i-find-out-which-dom-element-has-the-focus
 
-// TODO: Events
+// TODO: improved templating with caching - maybe?
 
-// TODO: memorize previous attributes when views update (recursively!!!)
+var DOM = wig.DOM = {
 
+    getElement: function (root, selector) {
+        root = this.selectNode(root);
+        return root.querySelector(selector);
+    },
 
-function attachNodeToParent(childNode, parentNode, index) {
-    if (typeof index === 'number') {
-        parentNode.insertBefore(childNode, parentNode.children[index]);
-    } else {
-        parentNode.appendChild(childNode);
+    selectNode: function (element) {
+        if (typeof element === 'string') {
+            element = this.getElement(document.body, element);
+        }
+
+        return element;
+    },
+
+    initNode: function (element, classSet, dataSet) {
+        var classes = classSet,
+            i;
+
+        if (Array.isArray(classSet)) {
+            classes = classSet.join(' ');
+        } else if (classSet && typeof classSet === 'object') {
+            classes = [];
+            for (i in classSet) {
+                if (classSet.hasOwnProperty(i) && classSet[i]) {
+                    classes.push(i);
+                }
+            }
+            classes = classes.join(' ');
+        }
+
+        if (classes) {
+            element.className = classes;
+        }
+
+        if (dataSet) {
+            extend(element.dataset, dataSet);
+        }
+
+        return element;
+    },
+
+    findClosestViewNode: function (element, attribute) {
+        var attributeValue;
+
+        do {
+            attributeValue = element.getAttribute(attribute);
+
+            if (attributeValue != null) {
+                return attributeValue;
+            }
+
+            element = element.parentNode;
+        } while (element !== document);
+    },
+
+    attachNodeToParent: function (childNode, parentNode, index) {
+        if (typeof index === 'number') {
+            parentNode.insertBefore(childNode, parentNode.children[index]);
+        } else {
+            parentNode.appendChild(childNode);
+        }
     }
+
+};
+
+var ViewDataAttribute = 'data-' + DATA_ATTRIBUTE;
+
+var DOMEventProxy = wig.DOMEventProxy = {
+
+    listeners: [],
+
+    findFirstViewAndFireEvent: function (event, view) {
+        do {
+            // find the first view that is listening to the same type of event
+            if (view.hasEvent(event)) {
+                view.fireDOMEvent(event);
+                return;
+            }
+
+            view = ViewManager.getParentView(view);
+        } while (view);
+    },
+
+    addListener: function (node, type) {
+        node.addEventListener(type, this.listener);
+    },
+
+    removeListener: function (node, type) {
+        node.removeEventListener(type, this.listener);
+    },
+
+    listener: function (event) {
+        var viewID = DOM.findClosestViewNode(event.target, ViewDataAttribute),
+            view = ViewManager.getView(viewID);
+
+        if (view) {
+            return DOMEventProxy.findFirstViewAndFireEvent(event, view);
+        }
+    },
+
+    startListenTo: function (type) {
+        if (!this.isListeningTo(type)) {
+            this.listeners.push(type);
+            this.addListener(document, type);
+        }
+    },
+
+    stopListenTo: function (type) {
+        var index = this.listeners.indexOf(type);
+        if (index > -1) {
+            this.removeListener(document, type);
+            this.listeners.splice(index, 1);
+        }
+    },
+
+    isListeningTo: function (type) {
+        return (this.listeners.indexOf(type) > -1);
+    }
+};
+
+
+function DataStore(async) {
+    this.root  = {};
+    this.async = (!!async);
 }
 
+extend(DataStore.prototype, {
+
+    _triggerChange: function (type, data) {
+        if (this.async) {
+            setTimeout(EventProxy.trigger
+                .bind(EventProxy, type, data), 0);
+        } else {
+            EventProxy.trigger(type, data);
+        }
+    },
+
+    _ensurePathIsArray: function (path) {
+        if (Array.isArray(path)) {
+            return path;
+        }
+
+        return path.split('.');
+    },
+
+    get: function (rawPath) {
+        var path = this._ensurePathIsArray(rawPath),
+            attribute = path.shift(),
+            context = this.root;
+
+        if (path.length === 0) {
+            return context[attribute];
+        }
+
+        while (context && path.length > 0) {
+            context = context[path.shift()];
+        }
+
+        return (context && context[attribute]);
+    },
+
+    set: function (rawPath, newValue) {
+        var path = this._ensurePathIsArray(rawPath),
+            attribute = path.shift(),
+            context = this.root,
+            oldValue;
+
+        if (path.length === 0) {
+            context[attribute] = newValue;
+        } else {
+            while (context && path.length > 0) {
+                context = context[path.shift()];
+            }
+
+            if (context) {
+                oldValue = context[attribute];
+                context[attribute] = newValue;
+            }
+        }
+
+        this._triggerChange(rawPath, {
+            newValue: newValue,
+            oldValue: oldValue
+        });
+    }
+
+});
+
+wig.DataStore = DataStore;
+
+var EventProxy = wig.EventProxy = {
+
+    _subscriptions: {},
+
+    _ensureTypeExists: function (type) {
+        var subscriptions = this._subscriptions;
+
+        if (!subscriptions[type]) {
+            subscriptions[type] = [];
+        }
+
+        return subscriptions[type];
+    },
+
+    _removeSubscriptionByIndex: function (type, index) {
+        this._subscriptions[type]
+            .splice(index, 1);
+    },
+
+    on: function (type, callback, context, once) {
+        var types = this._ensureTypeExists(type);
+        types.push({
+            callback: callback,
+            once: once
+        });
+    },
+
+    one: function (type, callback) {
+        this.on(type, callback, true);
+    },
+
+    off: function (type, callback) {
+        // TODO
+    },
+
+    trigger: function (type, data) {
+        // TODO
+    }
+
+};
+
+var Selection = wig.Selection = {
+
+    id:   undefined,
+    path: undefined,
+
+    start:  0,
+    end:    0,
+
+    preserveSelection: function () {
+        var node  = this.getSelectedNode();
+
+        this.start = node.selectionStart;
+        this.end   = node.selectionEnd;
+    },
+
+    getIndexOfNode: function (node, viewNode) {
+        var path = [];
+
+        do {
+            path.push(node.classList[0] ||
+                arrayIndexOf.call(node.parentNode.children, node));
+            node = node.parentNode;
+        } while (node !== viewNode);
+
+        return path;
+    },
+
+    preserveSelectionInView: function (updatingView) {
+        var node = document.activeElement,
+            focusedViewID = DOM.findClosestViewNode(node, ViewDataAttribute),
+            updatingViewID = updatingView.getID(),
+            viewNode;
+
+        if (focusedViewID && focusedViewID === updatingViewID) {
+            this.preserveSelection();
+
+            viewNode = updatingView.getNode();
+
+            this.id = updatingViewID;
+            if (node !== viewNode) {
+                this.path = (node.id || this.getIndexOfNode(node, viewNode));
+            }
+        }
+    },
+
+    restoreSelection: function (node) {
+        if (typeof node.setSelectionRange !== 'function') {
+            return;
+        }
+
+        node.setSelectionRange(this.start, this.end);
+    },
+
+    findNodeByIndex: function (index, node) {
+        if (typeof index === 'number') {
+            node = node.children[index];
+        } else {
+            node = node.children[0];
+            if (node.classList[0] !== index) {
+                do {
+                    node = node.nextSibling;
+                } while (node.classList[0] !== index);
+            }
+        }
+
+        return node;
+    },
+
+    restoreSelectionInView: function (view) {
+        // place focus in the node
+        var node = view.getNode(),
+            path = this.path,
+            index;
+
+        if (this.id && this.id === view.getID()) {
+            if (path.length > 0) {
+                do {
+                    // dig down to find focused node
+                    index = path.pop();
+                    node = this.findNodeByIndex(index, node);
+                } while (path.length !== 0);
+            }
+
+            // restore selection if node is an editable element
+            this.restoreSelection(node);
+
+            node.focus();
+
+            this.id = undefined;
+            this.path = undefined;
+        }
+    },
+
+    getSelectedNode: function () {
+        return document.activeElement;
+    }
+};
+
+var Template = {
+
+    REGEXP: /\{\{\s*([\w\d\.]+)\s*\}\}/g,
+
+    compile: function (template, context, view) {
+        return template.replace(this.REGEXP, function (res) {
+            var path = res.match(/[\w\d]+/g),
+                attribute = path[0],
+                ctx = (context[attribute] != null ? context : view),
+                result;
+
+            if (path.length > 1) {
+                attribute = path.pop();
+                while (path.length > 0) {
+                    ctx = ctx[path.shift()];
+                }
+            }
+
+            if (typeof ctx[attribute] === 'function') {
+                return ctx[attribute](context);
+            }
+
+            result = ctx[attribute];
+
+            if (typeof result === 'undefined') {
+                result = '';
+            }
+
+            return result;
+        });
+    },
+
+    compileTemplateForView: function (view) {
+        var template = view.template,
+            markup;
+
+        if (Array.isArray(template)) {
+            template = template.join('');
+        } else if (typeof template === 'function') {
+            template = view.template();
+        }
+
+        markup = this.compile(template, view.attributes, view);
+
+        return markup;
+    }
+};
+
+wig.Template = Template;
+
+var ViewManager = {
+
+    getView: function (id) {
+        var item = ViewRegistry.get(id);
+        return item && item.view;
+    },
+
+    getParentView: function (childView) {
+        var childID = childView.getID(),
+            item = ViewRegistry.get(childID),
+            parentID = (item && item.parent);
+
+        return this.getView(parentID);
+    },
+
+    getViewAtNode: function (node) {
+        node = DOM.selectNode(node);
+        return this.getView(node.dataset[DATA_ATTRIBUTE]);
+    },
+
+    getRootNodeMapping: function (parentView, childView) {
+        var viewID = childView.getID(),
+            selector = parentView.getSelectorForChild(viewID),
+            rootNode = parentView.getNode();
+
+        if (selector) {
+            rootNode = DOM.getElement(rootNode, selector);
+        }
+
+        return rootNode;
+    },
+
+    updateView: function (view) {
+        var childNode = view.getNode(),
+            parent = this.getParentView(view),
+            rootNode,
+            childNodeIndex;
+
+        view.undelegateAll();
+
+        Selection.preserveSelectionInView(view);
+
+        if (parent) {
+            rootNode = this.getRootNodeMapping(parent, view);
+        } else {
+            rootNode = childNode.parentNode;
+        }
+
+        childNodeIndex = arrayIndexOf.call(rootNode.children, childNode);
+
+        if (childNodeIndex > -1) {
+            rootNode.removeChild(childNode);
+        }
+
+        view.paint();
+
+        DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
+
+        Selection.restoreSelectionInView(view);
+    },
+
+    notifyViewAboutAttach: function (viewID) {
+        var view = ViewManager.getView(viewID);
+        view.notifyAttach();
+    },
+
+    notifyViewAboutDetach: function (viewID) {
+        var view = ViewManager.getView(viewID);
+        view.notifyDetach();
+    },
+
+    removeViewFromParent: function (view) {
+        var parentView = this.getParentView(view),
+            childViewID = view.getID();
+
+        if (parentView) {
+            parentView.removeView(childViewID);
+        } else {
+            view.destroy();
+        }
+    },
+
+    destroyViewAtNode: function (node) {
+        var view = this.getViewAtNode(node);
+        if (view) {
+            view.remove();
+        }
+    }
+};
+
+wig.ViewManager = ViewManager;
+
 /**
- *
- * @param {Node} node
+ * @classdesc Provides a convenient API for a key-value pair store.
+ * @class
  */
-function destroyViewAtNode(node) {
-    var view = getViewAtNode(node);
-    if (view) {
-        view.destroy();
-    }
+function Registry() {
+    this.root = {};
 }
 
+extend(Registry.prototype, {
+    /**
+     * Returns the stored value for the specified key.
+     * Returns {undefined} if key doesn't exist.
+     * @param   {string} key
+     * @returns {*}
+     */
+    get: function (key) {
+        return this.root[key];
+    },
+
+    /**
+     * Registers a value for the specified key.
+     * @param {string} key
+     * @param {*}      value
+     */
+    set: function (key, value) {
+        this.root[key] = value;
+    },
+
+    /**
+     * Removes the value specified by the key.
+     * @param {string} key
+     */
+    unset: function (key) {
+        delete this.root[key];
+    },
+
+    /**
+     * Iterates over each item in the registry and executes the provided callback for each value and key.
+     * @param  {function}         callback
+     * @param  {object|undefined} thisArg
+     * @throws {TypeError}
+     */
+    each: function (callback, thisArg) {
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        thisArg = (thisArg || this);
+
+        Object.keys(this.root).forEach(function (key) {
+            var value = this.get(key);
+            callback.call(thisArg, key, value);
+        }, this);
+    },
+
+    /**
+     * This is an internal method, don't use it!
+     * Empties the registry.
+     */
+    empty: function () {
+        Object.keys(this.root).forEach(this.unset, this);
+    }
+});
+
+wig.Registry = Registry;
+
 /**
- *
+ * Map of registered Views
+ * @type {Registry}
+ */
+var ViewRegistry = wig.ViewRegistry = new Registry();
+
+/**
+ * Registers a (child) View instance in the ViewRegistry.
+ * If parentView is specified, parent View's ID will be mapped against the child View's ID.
+ * @param childView
+ * @param parentView
+ */
+function addViewToRegistries(childView, parentView) {
+    var childViewID = childView.getID(),
+        item = {
+            parent: (parentView && parentView.getID()),
+            view: childView
+        };
+
+    ViewRegistry.set(childViewID, item);
+}
+
+wig.addViewToRegistries = addViewToRegistries;
+
+function removeViewFromRegistries(view) {
+    if (typeof view !== 'string') {
+        view = view.getID();
+    }
+
+    ViewRegistry.unset(view);
+}
+
+wig.removeViewFromRegistries = removeViewFromRegistries;
+
+/**
+ * Merges all argument objects into the first one.
  * @param   {object} obj
- * @returns {*}
+ * @returns {object}
  */
 function extend(obj) {
     var args = Array.prototype.slice.call(arguments, 1);
 
     args.forEach(function (o) {
-        if (o) {
+        if (o && typeof o === 'object') {
             Object.keys(o).forEach(function (key) {
                 obj[key] = o[key];
             });
@@ -86,66 +641,7 @@ function extend(obj) {
     return obj;
 }
 
-/**
- * Finds an element in the provided root HTMLElement.
- *
- * Override `wig.getElement`  if custom logic needed!
- *
- * @param   {string|HTMLElement} root     - Node or selector to search in
- * @param   {string}             selector - CSS selector
- * @returns {HTMLElement}
- */
-function getElement(root, selector) {
-    root = selectNode(root);
-    return root.querySelector(selector);
-}
-/**
- *
- * @param   {View} parentView
- * @param   {View} childView
- * @returns {Node}
- */
-function getRootNodeMapping(parentView, childView) {
-    var viewID = childView.getID(),
-        selector = parentView.getSelectorForChild(viewID),
-        rootNode = parentView.getNode();
-
-    if (selector) {
-        rootNode = wig.getElement(rootNode, selector);
-    }
-    return rootNode;
-}
-
-
-function initNode(node, classes, dataMap) {
-    var key;
-
-    if (Array.isArray(classes)) {
-        classes = classes.join(' ');
-    } else if (typeof classes === 'object') {
-        classes = Object.keys(classes).join(' ');
-
-    }
-
-    if (classes !== '') {
-        node.className = classes;
-    }
-
-    if (dataMap) {
-        extend(node.dataset, dataMap);
-    }
-
-    return node;
-}
-
-/**
- * Returns a View from the ViewRegistry.
- * @param   {string}    id - View's ID
- * @returns {View|null}
- */
-function getView(id) {
-    return (ViewRegistry[id] || null);
-}
+wig.extend = extend;
 
 /**
  * Generates a new unique string based on the
@@ -154,26 +650,19 @@ function getView(id) {
  * @returns {string}
  */
 function generateID(prefix) {
-    return (prefix + Id++);
+    return ((prefix || 0) + Id++);
 }
 
+wig.generateID = generateID;
+
 /**
- * Returns the View associated with a HTMLElement.
- * @param   {HTMLElement} node
- * @returns {View|null}
- */
-function getViewAtNode(node) {
-    node = selectNode(node);
-    return getView(node.dataset[DATA_ATTRIBUTE]);
-}
-/**
- * @namespace wig
+ * Renders the provided View instance into a DOM node.
  * @param   {View}    view
  * @param   {Element} node
  * @returns {View}
  */
 function renderView(view, node) {
-    node = selectNode(node);
+    node = wig.DOM.selectNode(node);
 
     view.setNode(node);
     view.paint();
@@ -182,84 +671,8 @@ function renderView(view, node) {
     return view;
 }
 
-/**
- * Returns a DOM element based on a selector or the element itself.
- * @param   {string|HTMLElement} element
- * @returns {*}
- */
-function selectNode(element) {
-    if (typeof element === 'string') {
-        element = wig.getElement(document.body, element);
-    }
+wig.renderView = renderView;
 
-    return element;
-}
-/**
- * Updates the View#attributes by a key and a value or a map of key/value pairs.
- * @param {string|object} arg
- * @param {*}             value
- * @param {object}        attributes
- */
-function setViewAttribute(arg, value, attributes) {
-    if (typeof arg === 'object') {
-        Object.keys(arg).forEach(function (key) {
-            setViewAttribute(key, arg[key], attributes);
-        });
-    } else {
-        attributes[arg] = value;
-    }
-}
-/**
- * @param {View} view
- */
-function updateView(view) {
-    var parentID = view.getParentID(),
-        childNode = view.getNode(),
-        rootNode = childNode.parentNode,
-        parentView,
-        childNodeIndex;
-
-    if (parentID) {
-        parentView = getView(parentID);
-        rootNode = getRootNodeMapping(parentView, view);
-        childNodeIndex = Array.prototype.indexOf.call(rootNode, childNode);
-    }
-
-    if (childNodeIndex > -1) {
-        rootNode.removeChild(childNode);
-    }
-
-    view.paint();
-
-    attachNodeToParent(childNode, rootNode, childNodeIndex);
-}
-/**
- * @static
- * @param props
- * @param statik
- * @returns {*}
- */
-View.extend = function (props, statik) {
-    var Super = this,
-        prototype = Object.create(Super.prototype),
-        Constructor;
-    // create constructor if not defined
-    if (props && props.hasOwnProperty('constructor')) {
-        Constructor = props.constructor;
-    } else {
-        Constructor = function () {
-            Super.apply(this, arguments);
-        };
-    }
-    // prototype properties
-    extend(prototype, props);
-    // Constructor (static) properties
-    extend(Constructor, statik, View);
-    // prototype inheritance
-    Constructor.prototype = prototype;
-    Constructor.prototype.constructor = Constructor;
-    return Constructor;
-};
 /**
  * @class View
  * @param    {object}  options
@@ -272,192 +685,383 @@ View.extend = function (props, statik) {
 function View(options) {
     options = (options || {});
 
+    this._childAttributesBeforeUpdate = new Registry();
+    this._customEvents = {};
+    this._children = [];
     this._ID = (options.id || generateID('v'));
-    this._PID = options.parentID; // soft link to parent
 
-    this.node = options.node;
-    this.children = [];
-    this.attributes = extend({}, options.attributes);
+    this.node = (options.node || document.createElement(this.tagName));
+    this.attributes = {};
+    this.attached = false;
 
+    // update default/initial attributes
+    this.set(options.attributes);
     this.initialize();
 
-    ViewRegistry[this.getID()] = this;
+    addViewToRegistries(this);
 }
+
+/**
+ * @static
+ * @param props
+ * @param statik
+ * @returns {*}
+ */
+View.extend = function (props, statik) {
+    var Super = this,
+        prototype = Object.create(Super.prototype),
+        classes = Super.prototype.className,
+        Constructor;
+
+    if (props) {
+        // inherit CSS definitions
+        if (props.className) {
+            classes = [classes, props.className].join(' ');
+        }
+        // create constructor if not defined
+        if (props.hasOwnProperty('constructor')) {
+            Constructor = props.constructor;
+        } else {
+            Constructor = function () {
+                Super.apply(this, arguments);
+            };
+        }
+    }
+    // prototype properties
+    extend(prototype, props);
+    // Constructor (static) properties
+    extend(Constructor, statik);
+    Constructor.add = View.add;
+    Constructor.extend = View.extend;
+    // prototype inheritance
+    Constructor.prototype = prototype;
+    Constructor.prototype.constructor = Constructor;
+    Constructor.prototype.className = classes;
+    return Constructor;
+};
+
+View.add = function (options, parentView) {
+    return parentView.addView(this, options);
+};
+
+wig.View = View;
+
+extend(View.prototype, {
+
+    // ///////// //
+    // PROTECTED //
+    // ///////// //
+
+    /**
+     * @param childViewID
+     */
+    initializeChild: function (childViewID) {
+        var childView = this.getView(childViewID);
+        if (childView) {
+            childView.initialize();
+        }
+    },
+
+    createChildView: function (ViewClass, options) {
+        var childView = new ViewClass(options);
+        wig.addViewToRegistries(childView, this);
+        this._children.push(childView.getID());
+        return childView;
+    },
+
+    updateChildView: function (childViewID) {
+        var childView = this.getView(childViewID);
+        if (childView) {
+            childView.update();
+        }
+    },
+
+    paintChildView: function (childViewID) {
+        var childView = this.getView(childViewID);
+        if (childView) {
+            ViewManager.updateView(childView);
+        }
+    },
+
+    removeView: function (childViewID) {
+        var childView = this.getView(childViewID),
+            index = this._children.indexOf(childViewID);
+
+        if (childView) {
+            childView.destroy();
+            this._children.splice(index, 1);
+        }
+    },
+
+    // ////// //
+    // PUBLIC //
+    // ////// //
+
+    /**
+     * @param ViewClass
+     * @param childOptions
+     * @returns {*}
+     */
+    addView: function (ViewClass, childOptions) {
+        var parentID = this.getID(),
+            childAttributes,
+            attributes,
+            options,
+            childID,
+            childView;
+
+        if (ViewClass && typeof ViewClass === 'object') {
+            childOptions = ViewClass;
+            ViewClass = (this.View || View);
+        }
+
+        childOptions = (childOptions || {});
+        childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
+
+        // apply previous attributes
+        childAttributes = this._childAttributesBeforeUpdate.get(childID);
+        attributes = extend({}, childAttributes, childOptions.attributes);
+
+        options = extend({}, childOptions, {
+            id: childID,
+            attributes: attributes
+        });
+
+        childView = this.createChildView(ViewClass, options);
+
+        // render child view if parent (this) is attached
+        if (this.attached) {
+            this.paintChildView(childID);
+        }
+
+        return childView;
+    },
+
+    getView: function (id) {
+        // if id is an array index instead of a child's ID
+        if (typeof id === 'number' && id < this._children.length) {
+            id = this._children[id];
+        }
+        // if id is not an absolute id
+        if (this._children.indexOf(id) === -1) {
+            id = this.getID() + '.' + id;
+        }
+        return ViewManager.getView(id);
+    }
+});
+
+extend(View.prototype, {
+
+    /**
+     * Delegate non-bubbling or custom events to DOMEventProxy.
+     * @param {string} type
+     * @param {string} selector
+     */
+    delegate: function (type, selector) {
+        var node;
+
+        if (!this._customEvents[type]) {
+            this._customEvents[type] = [];
+        }
+
+        if (this._customEvents[type].indexOf(selector) === -1) {
+            node = this.find(selector);
+            DOMEventProxy.addListener(node, type);
+            this._customEvents[type].push(selector || '');
+        }
+    },
+
+    undelegate: function (type) {
+        var selector = this._customEvents[type],
+            node = this.find(selector);
+
+        DOMEventProxy.removeListener(node, type);
+    },
+
+    undelegateAll: function () {
+        Object.keys(this._customEvents).forEach(this.undelegate, this);
+    },
+
+    listenFor: function (type) {
+        DOMEventProxy.startListenTo(type);
+    },
+
+    fireDOMEvent: function (event) {
+        var listener = this.events[event.type];
+
+        if (typeof listener !== 'function' || this[listener]) {
+            listener = this[listener];
+        }
+
+        if (listener) {
+            return listener.call(this, event);
+        }
+    },
+
+    hasEvent: function (event) {
+        return !!(this.events && this.events[event.type])
+    }
+});
+
 // View prototype
 extend(View.prototype, {
     tagName: 'div',
 
     className: 'View',
 
-    mapping: {},
+    defaults: {},
+
+    renderMap: {},
+
+    dataMap: {},
+
+    events: {},
+
+    View: View,
+
+    template: '',
+
+    initialize: function () {
+        var dataset = {};
+        dataset[DATA_ATTRIBUTE] = this.getID();
+        // assign classes and data attributes
+        DOM.initNode(this.getNode(), this.className, dataset);
+        // apply event listeners
+        Object.keys(this.events).forEach(this.listenFor, this);
+        // initialize children
+        this._children.forEach(this.initializeChild);
+    },
 
     get: function (attribute) {
         return this.attributes[attribute];
     },
-    getAttributes: function () {
-        return extend({}, this.attributes);
+
+    set: function (attributes) {
+        var overrides;
+
+        if (attributes && typeof attributes === 'object') {
+            overrides = this.parseAttributes(attributes);
+            extend(this.attributes, this.defaults, attributes, overrides);
+        }
     },
-    set: function (arg, value) {
-        setViewAttribute(arg, value, this.attributes);
-        this.update();
+
+    parseAttributes: function (newAttributes) {
+        return newAttributes;
     },
 
     getID: function () {
         return this._ID;
     },
 
-    getParentID: function () {
-        return this._PID;
-    },
-
-    initialize: function () {
-        var dataset = {};
-        dataset[DATA_ATTRIBUTE] = this.getID();
-        this.node = (this.node || document.createElement(this.tagName));
-        initNode(this.getNode(), this.className, dataset);
+    getAttributes: function () {
+        return extend({}, this.attributes);
     },
 
     getSelectorForChild: function (id) {
         var childView = this.getView(id),
             childID = childView.getID().split('.').pop();
-        return (this.mapping[childID] || this.mapping['*']);
+        return (this.renderMap[childID] || this.renderMap['*']);
     },
 
     getNode: function () {
         return this.node;
     },
+
     setNode: function (node) {
         this.node = node;
         this.initialize();
-        this.notifyAttach();
     },
 
-    addView: function (childOptions) {
-        var options = {},
-            parentID = this.getID(),
-            childID,
-            ViewClass;
+    find: function (selector) {
+        var node = this.getNode();
 
-        childOptions = (childOptions || {});
-        ViewClass = (childOptions.ViewClass || View);
-        childID = [
-            parentID,
-            (childOptions.id || this.children.length)
-        ].join('.');
-
-        delete childOptions.ViewClass;
-
-        return this.createView(ViewClass, options, childOptions, {
-            id: childID,
-            parentID: parentID
-        });
-    },
-    createView: function (ViewClass) {
-        var args = Array.prototype.slice.call(arguments, 1),
-            options = extend.apply(null, args),
-            view = new ViewClass(options);
-        this.children.push(view.getID());
-        return view;
-    },
-    getView: function (id) {
-        // if id is an array index instead of a child's ID
-        if (typeof id === 'number' && id < this.children.length) {
-            id = this.children[id];
+        if (!selector) {
+            return node;
         }
-        return getView(id);
-    },
-    updateView: function (id) {
-        var childView = this.getView(id);
-        if (childView) {
-            childView.update();
-        }
+
+        return DOM.getElement(node, selector);
     },
 
-    update: function () {
+    update: function (attributes) {
         this.notifyDetach();
-        updateView(this);
+        this.set(attributes);
+        ViewManager.updateView(this);
         this.notifyAttach();
     },
 
-    paintView: function (id) {
-        var childView = this.getView(id);
-        updateView(childView);
+    serialize: function () {
+        return this.attributes;
     },
+
     paint: function () {
         var node = this.getNode(),
-            // regenerate markup from template
-            html = this.getMarkup();
-
-        if (Array.isArray(html)) {
-            html = html.join('');
-        }
+            html = Template.compileTemplateForView(this);
 
         node.innerHTML = (html || '');
 
-        this.empty();
+        this._emptyAndPreserveChildAttributes();
         this.render();
-        this.children.forEach(this.paintView, this);
+        this._children.forEach(this.paintChildView, this);
     },
 
     empty: function () {
-        this.children.forEach(this.removeView, this);
-        this.children = [];
-    },
-    removeView: function (childViewID) {
-        var view = this.getView(childViewID),
-            attributes = view.getAttributes();
-
-        view.destroy();
-
-        return attributes;
+        this._children.forEach(this.removeView, this);
+        this._children = [];
     },
 
     notifyAttach: function () {
+        this.attached = true;
         this.onAttach();
-        this.children.forEach(function (childViewID) {
-            var childView = this.getView(childViewID);
-            childView.notifyAttach();
-        }, this);
+        this._children.forEach(ViewManager.notifyViewAboutAttach);
     },
 
     notifyDetach: function () {
+        this.attached = false;
         this.onDetach();
-        this.children.forEach(function (childViewID) {
-            var childView = this.getView(childViewID);
-            childView.notifyDetach();
-        }, this);
+        this._children.forEach(ViewManager.notifyViewAboutDetach);
     },
 
-    destroyView: function (childViewID) {
-        var childView = this.getView(childViewID);
-        childView.destroy();
+    remove: function () {
+        ViewManager.removeViewFromParent(this);
     },
 
     destroy: function () {
+        var parentNode = this.node.parentNode;
+        this.undelegateAll();
+        this.notifyDetach();
+
+        if (parentNode) {
+            parentNode.removeChild(this.node);
+        }
+
+        this._children.forEach(this.removeView, this);
         this.node = null;
-        this.children.forEach(this.destroyView, this);
-        delete ViewRegistry[this.getID()];
+        removeViewFromRegistries(this);
+    },
+
+    _serializeAndRemoveView: function (childViewID) {
+        var childView = this.getView(childViewID),
+            serializedChild = childView.serialize();
+
+        this._childAttributesBeforeUpdate.set(childViewID, serializedChild);
+        this.removeView(childViewID);
+    },
+
+    _emptyAndPreserveChildAttributes: function () {
+        this._childAttributesBeforeUpdate.empty();
+        this._children.forEach(this._serializeAndRemoveView, this);
+        this._children = [];
     }
 });
 
 // user defined methods defaulting to NoOp
-['onDetach', 'onAttach', 'onDestroy', 'getMarkup', 'render'].forEach(function (method) {
+[
+    'onAttach',
+    'onDetach',
+    'onDestroy',
+    'render'
+].forEach(function (method) {
     View.prototype[method] = NoOp;
 });
-extend(wig, {
-    View: View,
-    extend: extend,
-    ViewRegistry: ViewRegistry,
-    renderView: renderView,
-    getView: getView,
 
-    // Hook
-    getElement: getElement,
-
-    getViewAtNode: getViewAtNode,
-    setViewAttribute: setViewAttribute,
-    attachNodeToParent: attachNodeToParent,
-    selectNode: selectNode,
-    destroyViewAtNode: destroyViewAtNode
-});
 }));

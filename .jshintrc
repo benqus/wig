@@ -16,8 +16,5 @@
   "noempty": true,
   "nonew": true,
   "plusplus": false,
-//  "undef": true,
-//  "unused": true,
-//  "strict": true,
   "indent": 4
 }

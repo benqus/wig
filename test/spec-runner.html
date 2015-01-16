@@ -1,10 +1,36 @@
 <!DOCTYPE html>
 <html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
+    <head lang="en">
+        <meta charset="UTF-8">
 
-</body>
+        <script src="../node_modules/chai/chai.js"></script>
+        <script src="../node_modules/sinon/pkg/sinon-1.12.2.js"></script>
+        <link href="../node_modules/grunt-mocha/node_modules/mocha/mocha.css" rel="stylesheet" />
+        <script src="../node_modules/grunt-mocha/node_modules/mocha/mocha.js"></script>
+        <script src="init.js"></script>
+
+        <script src="../wig.js"></script>
+
+        <script src="fixtures.js"></script>
+
+        <!-- UNIT TESTS -->
+        <script src="unit/DOMEventProxy.test.js"></script>
+        <script src="unit/DOM.test.js"></script>
+        <script src="unit/ViewManager.test.js"></script>
+
+        <script src="unit/methods/extend.test.js"></script>
+        <script src="unit/methods/generateID.test.js"></script>
+        <script src="unit/methods/renderView.test.js"></script>
+
+        <script src="unit/registry/Registry.test.js"></script>
+        <script src="unit/registry/ViewRegistry.test.js"></script>
+        <script src="unit/registry/addViewToRegistries.test.js"></script>
+        <script src="unit/registry/removeViewFromRegistries.test.js"></script>
+
+        <title>Wig.js - Tests</title>
+    </head>
+    <body>
+        <div id="mocha"></div>
+        <div id="fixture"></div>
+    </body>
 </html>
