@@ -1,7 +1,7 @@
 {
-  "name": "wig",
+  "name": "Wig",
   "version": "0.1.0",
-  "description": "Wig - Rendering framework",
+  "description": "Minimalistic, scalable, dependency-less Front-end factory.",
   "main": "./wig.js",
   "repository": {
     "type": "git",
