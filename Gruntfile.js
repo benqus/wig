@@ -42,7 +42,8 @@ module.exports = function (grunt) {
                 src: [
                     'Gruntfile.js',
                     'src/**/*.js',
-                    'test/**/*.js'
+                    'test/**/*.js',
+                    'examples/**/*.js'
                 ]
             }
         },
@@ -76,7 +77,7 @@ module.exports = function (grunt) {
                     'test/**/*.js',
                     'test/spec-runner.html'
                 ],
-                tasks: ['test']
+                tasks: ['jshint', 'test']
             }
         }
     });
@@ -88,8 +89,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
 
     grunt.registerTask('default', ['build']);
-    grunt.registerTask('dev', ['test', 'watch']);
-    grunt.registerTask('build', [/*'jshint',*/ 'concat']);
+    grunt.registerTask('dev', ['jshint', 'test', 'watch']);
+    grunt.registerTask('build', ['jshint', 'concat']);
     grunt.registerTask('test', ['build', 'mocha:dev']);
     grunt.registerTask('deploy', ['build', 'uglify', 'mocha:ci']);
 };

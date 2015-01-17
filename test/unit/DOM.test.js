@@ -5,7 +5,7 @@ describe('DOM#attachNodeToParent', function () {
         domFixture;
 
     before(function () {
-        domFixture = document.getElementById('fixture')
+        domFixture = document.getElementById('fixture');
     });
 
     afterEach(function () {
