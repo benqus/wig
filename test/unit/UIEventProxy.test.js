@@ -8,7 +8,7 @@ describe('UIEventProxy', function () {
         findClosestViewNodeStubFactory = wig.test.findClosestViewNodeStubFactory;
 
     afterEach(function () {
-        wig.ViewRegistry.empty();
+        wig.View.Registry.empty();
     });
 
     it('exists', function () {

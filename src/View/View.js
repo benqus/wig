@@ -11,20 +11,56 @@ function View(options) {
     options = (options || {});
 
     this._childAttributesBeforeUpdate = new Registry();
-    this._customEvents = {};
-    this._children = [];
-    this._ID = (options.id || generateID('v'));
 
-    this.node = (options.node || document.createElement(this.tagName));
+    this._ID           = (options.id || generateID('v'));
+    this._children     = [];
+    this._customEvents = {};
+
+    this.node       = (options.node || document.createElement(this.tagName));
+    this.attached   = false;
     this.attributes = {};
-    this.attached = false;
 
     // update default/initial attributes
     this.set(options.attributes);
     this.initialize();
 
-    addViewToRegistries(this);
+    View.registerView(this);
 }
+
+View.Registry = new Registry();
+
+/**
+ * Registers a (child) View instance in the ViewRegistry.
+ * If parentView is specified, parent View's ID will be mapped against the child View's ID.
+ * @param childView
+ * @param parentView
+ */
+View.registerView = function (childView, parentView) {
+    var viewID = childView.getID();
+
+    View.Registry.set(viewID, {
+        parent: (parentView && parentView.getID()),
+        view: childView
+    });
+};
+
+View.removeView = function (view) {
+    if (typeof view !== 'string') {
+        view = view.getID();
+    }
+
+    View.Registry.unset(view);
+};
+
+View.inheritCSSClasses = function (superClassName, className) {
+    var classes = [superClassName];
+
+    if (className) {
+        classes.push(superClassName, className);
+    }
+
+    return classes.join(' ');
+};
 
 /**
  * @static
@@ -33,16 +69,11 @@ function View(options) {
  * @returns {*}
  */
 View.extend = function (props, statik) {
-    var Super = this,
+    var Super     = this,
         prototype = Object.create(Super.prototype),
-        classes = Super.prototype.className,
         Constructor;
 
     if (props) {
-        // inherit CSS definitions
-        if (props.className) {
-            classes = [classes, props.className].join(' ');
-        }
         // create constructor if not defined
         if (props.hasOwnProperty('constructor')) {
             Constructor = props.constructor;
@@ -61,7 +92,11 @@ View.extend = function (props, statik) {
     // prototype inheritance
     Constructor.prototype = prototype;
     Constructor.prototype.constructor = Constructor;
-    Constructor.prototype.className = classes;
+    Constructor.prototype.className = View.inheritCSSClasses(
+        Super.prototype.className,
+        props.className
+    );
+
     return Constructor;
 };
 

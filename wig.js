@@ -44,10 +44,6 @@ var
 
 wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
 
-// TODO: preserve focus after re-render on previously focused element ??? (set might have solved this)
-// - https://developer.mozilla.org/en-US/docs/Web/API/document.activeElement
-// - http://stackoverflow.com/questions/497094/how-do-i-find-out-which-dom-element-has-the-focus
-
 // TODO: improved templating with caching - maybe?
 
 var DOM = wig.DOM = {
@@ -226,6 +222,72 @@ var EventProxy = wig.EventProxy = {
     }
 
 };
+
+/**
+ * @classdesc Provides a convenient API for a key-value pair store.
+ * @class
+ */
+function Registry() {
+    this.root = {};
+}
+
+extend(Registry.prototype, {
+    /**
+     * Returns the stored value for the specified key.
+     * Returns {undefined} if key doesn't exist.
+     * @param   {string} key
+     * @returns {*}
+     */
+    get: function (key) {
+        return this.root[key];
+    },
+
+    /**
+     * Registers a value for the specified key.
+     * @param {string} key
+     * @param {*}      value
+     */
+    set: function (key, value) {
+        this.root[key] = value;
+    },
+
+    /**
+     * Removes the value specified by the key.
+     * @param {string} key
+     */
+    unset: function (key) {
+        delete this.root[key];
+    },
+
+    /**
+     * Iterates over each item in the registry and executes the provided callback for each value and key.
+     * @param  {function}         callback
+     * @param  {object|undefined} thisArg
+     * @throws {TypeError}
+     */
+    each: function (callback, thisArg) {
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        thisArg = (thisArg || this);
+
+        Object.keys(this.root).forEach(function (key) {
+            var value = this.get(key);
+            callback.call(thisArg, key, value);
+        }, this);
+    },
+
+    /**
+     * This is an internal method, don't use it!
+     * Empties the registry.
+     */
+    empty: function () {
+        Object.keys(this.root).forEach(this.unset, this);
+    }
+});
+
+wig.Registry = Registry;
 
 var Selection = wig.Selection = {
 
@@ -430,24 +492,28 @@ var UIEventProxy = wig.UIEventProxy = {
     }
 };
 
-var ViewManager = {
+var ViewManager = wig.ViewManager = {
 
     getView: function (id) {
-        var item = ViewRegistry.get(id);
-        return item && item.view;
+        var item = View.Registry.get(id);
+        return (item && item.view);
+    },
+
+    getParent: function (id) {
+        var item = View.Registry.get(id);
+        return (item && item.parent);
     },
 
     getParentView: function (childView) {
         var childID = childView.getID(),
-            item = ViewRegistry.get(childID),
-            parentID = (item && item.parent);
+            parentID = ViewManager.getParent(childID);
 
-        return this.getView(parentID);
+        return ViewManager.getView(parentID);
     },
 
     getViewAtNode: function (node) {
         node = DOM.selectNode(node);
-        return this.getView(node.dataset[DATA_ATTRIBUTE]);
+        return ViewManager.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
     getRootNodeMapping: function (parentView, childView) {
@@ -464,8 +530,8 @@ var ViewManager = {
 
     updateView: function (view) {
         var childNode = view.getNode(),
-            parent = this.getParentView(view),
-            rootNode,
+            parent = ViewManager.getParentView(view),
+            rootNode = childNode.parentNode,
             childNodeIndex;
 
         view.undelegateAll();
@@ -473,9 +539,7 @@ var ViewManager = {
         Selection.preserveSelectionInView(view);
 
         if (parent) {
-            rootNode = this.getRootNodeMapping(parent, view);
-        } else {
-            rootNode = childNode.parentNode;
+            rootNode = ViewManager.getRootNodeMapping(parent, view);
         }
 
         childNodeIndex = arrayIndexOf.call(rootNode.children, childNode);
@@ -502,7 +566,7 @@ var ViewManager = {
     },
 
     removeViewFromParent: function (view) {
-        var parentView = this.getParentView(view),
+        var parentView = ViewManager.getParentView(view),
             childViewID = view.getID();
 
         if (parentView) {
@@ -513,114 +577,12 @@ var ViewManager = {
     },
 
     destroyViewAtNode: function (node) {
-        var view = this.getViewAtNode(node);
+        var view = ViewManager.getViewAtNode(node);
         if (view) {
             view.remove();
         }
     }
 };
-
-wig.ViewManager = ViewManager;
-
-/**
- * @classdesc Provides a convenient API for a key-value pair store.
- * @class
- */
-function Registry() {
-    this.root = {};
-}
-
-extend(Registry.prototype, {
-    /**
-     * Returns the stored value for the specified key.
-     * Returns {undefined} if key doesn't exist.
-     * @param   {string} key
-     * @returns {*}
-     */
-    get: function (key) {
-        return this.root[key];
-    },
-
-    /**
-     * Registers a value for the specified key.
-     * @param {string} key
-     * @param {*}      value
-     */
-    set: function (key, value) {
-        this.root[key] = value;
-    },
-
-    /**
-     * Removes the value specified by the key.
-     * @param {string} key
-     */
-    unset: function (key) {
-        delete this.root[key];
-    },
-
-    /**
-     * Iterates over each item in the registry and executes the provided callback for each value and key.
-     * @param  {function}         callback
-     * @param  {object|undefined} thisArg
-     * @throws {TypeError}
-     */
-    each: function (callback, thisArg) {
-        if (typeof callback !== 'function') {
-            return;
-        }
-
-        thisArg = (thisArg || this);
-
-        Object.keys(this.root).forEach(function (key) {
-            var value = this.get(key);
-            callback.call(thisArg, key, value);
-        }, this);
-    },
-
-    /**
-     * This is an internal method, don't use it!
-     * Empties the registry.
-     */
-    empty: function () {
-        Object.keys(this.root).forEach(this.unset, this);
-    }
-});
-
-wig.Registry = Registry;
-
-/**
- * Map of registered Views
- * @type {Registry}
- */
-var ViewRegistry = wig.ViewRegistry = new Registry();
-
-/**
- * Registers a (child) View instance in the ViewRegistry.
- * If parentView is specified, parent View's ID will be mapped against the child View's ID.
- * @param childView
- * @param parentView
- */
-function addViewToRegistries(childView, parentView) {
-    var childViewID = childView.getID(),
-        item = {
-            parent: (parentView && parentView.getID()),
-            view: childView
-        };
-
-    ViewRegistry.set(childViewID, item);
-}
-
-wig.addViewToRegistries = addViewToRegistries;
-
-function removeViewFromRegistries(view) {
-    if (typeof view !== 'string') {
-        view = view.getID();
-    }
-
-    ViewRegistry.unset(view);
-}
-
-wig.removeViewFromRegistries = removeViewFromRegistries;
 
 /**
  * Merges all argument objects into the first one.
@@ -686,20 +648,56 @@ function View(options) {
     options = (options || {});
 
     this._childAttributesBeforeUpdate = new Registry();
-    this._customEvents = {};
-    this._children = [];
-    this._ID = (options.id || generateID('v'));
 
-    this.node = (options.node || document.createElement(this.tagName));
+    this._ID           = (options.id || generateID('v'));
+    this._children     = [];
+    this._customEvents = {};
+
+    this.node       = (options.node || document.createElement(this.tagName));
+    this.attached   = false;
     this.attributes = {};
-    this.attached = false;
 
     // update default/initial attributes
     this.set(options.attributes);
     this.initialize();
 
-    addViewToRegistries(this);
+    View.registerView(this);
 }
+
+View.Registry = new Registry();
+
+/**
+ * Registers a (child) View instance in the ViewRegistry.
+ * If parentView is specified, parent View's ID will be mapped against the child View's ID.
+ * @param childView
+ * @param parentView
+ */
+View.registerView = function (childView, parentView) {
+    var viewID = childView.getID();
+
+    View.Registry.set(viewID, {
+        parent: (parentView && parentView.getID()),
+        view: childView
+    });
+};
+
+View.removeView = function (view) {
+    if (typeof view !== 'string') {
+        view = view.getID();
+    }
+
+    View.Registry.unset(view);
+};
+
+View.inheritCSSClasses = function (superClassName, className) {
+    var classes = [superClassName];
+
+    if (className) {
+        classes.push(superClassName, className);
+    }
+
+    return classes.join(' ');
+};
 
 /**
  * @static
@@ -708,16 +706,11 @@ function View(options) {
  * @returns {*}
  */
 View.extend = function (props, statik) {
-    var Super = this,
+    var Super     = this,
         prototype = Object.create(Super.prototype),
-        classes = Super.prototype.className,
         Constructor;
 
     if (props) {
-        // inherit CSS definitions
-        if (props.className) {
-            classes = [classes, props.className].join(' ');
-        }
         // create constructor if not defined
         if (props.hasOwnProperty('constructor')) {
             Constructor = props.constructor;
@@ -736,7 +729,11 @@ View.extend = function (props, statik) {
     // prototype inheritance
     Constructor.prototype = prototype;
     Constructor.prototype.constructor = Constructor;
-    Constructor.prototype.className = classes;
+    Constructor.prototype.className = View.inheritCSSClasses(
+        Super.prototype.className,
+        props.className
+    );
+
     return Constructor;
 };
 
@@ -764,7 +761,7 @@ extend(View.prototype, {
 
     createChildView: function (ViewClass, options) {
         var childView = new ViewClass(options);
-        wig.addViewToRegistries(childView, this);
+        View.registerView(childView, this);
         this._children.push(childView.getID());
         return childView;
     },

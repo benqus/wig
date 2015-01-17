@@ -16,7 +16,7 @@ extend(View.prototype, {
 
     createChildView: function (ViewClass, options) {
         var childView = new ViewClass(options);
-        wig.addViewToRegistries(childView, this);
+        View.registerView(childView, this);
         this._children.push(childView.getID());
         return childView;
     },

@@ -1,21 +1,25 @@
-var ViewManager = {
+var ViewManager = wig.ViewManager = {
 
     getView: function (id) {
-        var item = ViewRegistry.get(id);
-        return item && item.view;
+        var item = View.Registry.get(id);
+        return (item && item.view);
+    },
+
+    getParent: function (id) {
+        var item = View.Registry.get(id);
+        return (item && item.parent);
     },
 
     getParentView: function (childView) {
         var childID = childView.getID(),
-            item = ViewRegistry.get(childID),
-            parentID = (item && item.parent);
+            parentID = ViewManager.getParent(childID);
 
-        return this.getView(parentID);
+        return ViewManager.getView(parentID);
     },
 
     getViewAtNode: function (node) {
         node = DOM.selectNode(node);
-        return this.getView(node.dataset[DATA_ATTRIBUTE]);
+        return ViewManager.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
     getRootNodeMapping: function (parentView, childView) {
@@ -32,8 +36,8 @@ var ViewManager = {
 
     updateView: function (view) {
         var childNode = view.getNode(),
-            parent = this.getParentView(view),
-            rootNode,
+            parent = ViewManager.getParentView(view),
+            rootNode = childNode.parentNode,
             childNodeIndex;
 
         view.undelegateAll();
@@ -41,9 +45,7 @@ var ViewManager = {
         Selection.preserveSelectionInView(view);
 
         if (parent) {
-            rootNode = this.getRootNodeMapping(parent, view);
-        } else {
-            rootNode = childNode.parentNode;
+            rootNode = ViewManager.getRootNodeMapping(parent, view);
         }
 
         childNodeIndex = arrayIndexOf.call(rootNode.children, childNode);
@@ -70,7 +72,7 @@ var ViewManager = {
     },
 
     removeViewFromParent: function (view) {
-        var parentView = this.getParentView(view),
+        var parentView = ViewManager.getParentView(view),
             childViewID = view.getID();
 
         if (parentView) {
@@ -81,11 +83,9 @@ var ViewManager = {
     },
 
     destroyViewAtNode: function (node) {
-        var view = this.getViewAtNode(node);
+        var view = ViewManager.getViewAtNode(node);
         if (view) {
             view.remove();
         }
     }
 };
-
-wig.ViewManager = ViewManager;

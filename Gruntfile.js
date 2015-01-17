@@ -23,9 +23,10 @@ module.exports = function (grunt) {
 
                     './src/static.js',
                     './src/*.js',
-                    './src/registry/**/*.js',
                     './src/methods/**/*.js',
                     './src/View/**/*.js',
+
+                    './src/**/*.js',
 
                     './src/outro'
                 ],

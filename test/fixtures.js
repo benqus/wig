@@ -29,7 +29,7 @@
                 }
             }
 
-            wig.addViewToRegistries(view, parent);
+            wig.View.registerView(view, parent);
 
             return view;
         },

@@ -6,7 +6,7 @@ describe('ViewManager', function () {
     var viewFixtureFactory = wig.test.viewFixtureFactory;
 
     afterEach(function () {
-        wig.ViewRegistry.empty();
+        wig.View.Registry.empty();
     });
 
     describe('getParentView', function () {
@@ -20,10 +20,10 @@ describe('ViewManager', function () {
         it('returns parent view', function () {
             var childId = 'a',
                 parentId = 'b',
-                view = viewFixtureFactory(childId, parentId),
-                parent = viewFixtureFactory(parentId);
+                parent = viewFixtureFactory(parentId),
+                child = viewFixtureFactory(childId, parentId);
 
-            assert.equal(wig.ViewManager.getParentView(view), parent);
+            assert.equal(wig.ViewManager.getParentView(child), parent);
         });
     });
 
@@ -32,7 +32,7 @@ describe('ViewManager', function () {
             var id = 'a',
                 view = wig.test.viewFixtureFactory(id);
 
-            wig.ViewRegistry.set(id, {
+            wig.View.Registry.set(id, {
                 view: view
             });
 
@@ -47,7 +47,7 @@ describe('ViewManager', function () {
                 div = document.createElement('div');
 
             div.dataset[wig.DATA_ATTRIBUTE] = id;
-            wig.ViewRegistry.set(id, {
+            wig.View.Registry.set(id, {
                 view: view
             });
 
