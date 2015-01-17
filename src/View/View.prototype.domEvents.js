@@ -6,16 +6,17 @@ extend(View.prototype, {
      * @param {string} selector
      */
     delegate: function (type, selector) {
-        var node;
+        var customEvents = this._customEvents,
+            node;
 
-        if (!this._customEvents[type]) {
-            this._customEvents[type] = [];
+        if (!customEvents[type]) {
+            customEvents[type] = [];
         }
 
-        if (this._customEvents[type].indexOf(selector) === -1) {
+        if (customEvents[type].indexOf(selector) === -1) {
             node = this.find(selector);
             UIEventProxy.addListener(node, type);
-            this._customEvents[type].push(selector || '');
+            customEvents[type].push(selector || '');
         }
     },
 
@@ -47,6 +48,6 @@ extend(View.prototype, {
     },
 
     hasEvent: function (event) {
-        return !!(this.events && this.events[event.type])
+        return !!(this.events && this.events[event.type]);
     }
 });
