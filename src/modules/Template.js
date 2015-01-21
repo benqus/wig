@@ -1,4 +1,4 @@
-var Template = wig.Template = {
+var Template = wig.Template = Class.extend({
 
     REGEXP: /\{\{\s*([\w\d\.]+)\s*\}\}/g,
 
@@ -32,16 +32,16 @@ var Template = wig.Template = {
 
     compileTemplateForView: function (view) {
         var template = view.template,
-            markup;
+            context = view.serialize();
+
+        if (typeof template === 'function') {
+            return view.template(context);
+        }
 
         if (Array.isArray(template)) {
             template = template.join('');
-        } else if (typeof template === 'function') {
-            template = view.template(view.attributes);
         }
 
-        markup = this.compile(template, view.attributes, view);
-
-        return markup;
+        return this.compile(template, context, view);
     }
-};
+});

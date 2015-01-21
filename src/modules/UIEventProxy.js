@@ -23,7 +23,7 @@ var UIEventProxy = wig.UIEventProxy = {
     },
 
     listener: function (event) {
-        var viewID = DOM.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
+        var viewID = wig.env.dom.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
             view = ViewManager.getView(viewID);
 
         if (view) {

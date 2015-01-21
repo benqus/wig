@@ -98,7 +98,7 @@ describe('ViewManager', function () {
                 parent = viewFixtureFactory(parentID),
                 parentDOMNode = {},
                 selector = 'h1',
-                getElementStub = sinon.stub(wig.DOM, 'getElement');
+                getElementStub = sinon.stub(wig.env.dom, 'getElement');
 
             parent.getNode.returns(parentDOMNode);
             parent.getSelectorForChild.returns(selector);

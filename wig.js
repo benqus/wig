@@ -82,7 +82,7 @@ Class.extend = function (props, statik) {
     return Constructor;
 };
 
-var DOM = wig.DOM = {
+var DOM = wig.DOM = Class.extend({
 
     getElement: function (root, selector) {
         root = this.selectNode(root);
@@ -146,7 +146,7 @@ var DOM = wig.DOM = {
         }
     }
 
-};
+});
 
 /**
  * @classdesc Provides a convenient API for a key-value pair store.
@@ -213,13 +213,17 @@ var Registry = wig.Registry = Class.extend({
     }
 });
 
-var Selection = wig.Selection = {
+var Selection = wig.Selection = Class.extend({
 
     id:   undefined,
     path: undefined,
 
     start: 0,
     end:   0,
+
+    constructor: function (DOM) {
+        this.DOM = DOM;
+    },
 
     preserveSelection: function () {
         var node  = this.getSelectedNode();
@@ -242,7 +246,7 @@ var Selection = wig.Selection = {
 
     preserveSelectionInView: function (updatingView) {
         var node = document.activeElement,
-            focusedViewID = DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
+            focusedViewID = this.DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;
 
@@ -309,9 +313,9 @@ var Selection = wig.Selection = {
     getSelectedNode: function () {
         return document.activeElement;
     }
-};
+});
 
-var Template = wig.Template = {
+var Template = wig.Template = Class.extend({
 
     REGEXP: /\{\{\s*([\w\d\.]+)\s*\}\}/g,
 
@@ -345,19 +349,19 @@ var Template = wig.Template = {
 
     compileTemplateForView: function (view) {
         var template = view.template,
-            markup;
+            context = view.serialize();
+
+        if (typeof template === 'function') {
+            return view.template(context);
+        }
 
         if (Array.isArray(template)) {
             template = template.join('');
-        } else if (typeof template === 'function') {
-            template = view.template(view.attributes);
         }
 
-        markup = this.compile(template, view.attributes, view);
-
-        return markup;
+        return this.compile(template, context, view);
     }
-};
+});
 
 var UIEventProxy = wig.UIEventProxy = {
 
@@ -384,7 +388,7 @@ var UIEventProxy = wig.UIEventProxy = {
     },
 
     listener: function (event) {
-        var viewID = DOM.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
+        var viewID = wig.env.dom.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
             view = ViewManager.getView(viewID);
 
         if (view) {
@@ -432,7 +436,7 @@ var ViewManager = wig.ViewManager = {
     },
 
     getViewAtNode: function (node) {
-        node = DOM.selectNode(node);
+        node = wig.env.dom.selectNode(node);
         return ViewManager.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
@@ -442,7 +446,7 @@ var ViewManager = wig.ViewManager = {
             rootNode = parentView.getNode();
 
         if (selector) {
-            rootNode = DOM.getElement(rootNode, selector);
+            rootNode = wig.env.dom.getElement(rootNode, selector);
         }
 
         return rootNode;
@@ -456,7 +460,7 @@ var ViewManager = wig.ViewManager = {
 
         view.undelegateAll();
 
-        Selection.preserveSelectionInView(view);
+        wig.env.selection.preserveSelectionInView(view);
 
         if (parent) {
             rootNode = ViewManager.getRootNodeMapping(parent, view);
@@ -470,9 +474,8 @@ var ViewManager = wig.ViewManager = {
 
         view.paint();
 
-        DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
-
-        Selection.restoreSelectionInView(view);
+        wig.env.dom.attachNodeToParent(childNode, rootNode, childNodeIndex);
+        wig.env.selection.restoreSelectionInView(view);
     },
 
     notifyViewAboutAttach: function (viewID) {
@@ -538,7 +541,9 @@ function generateID(prefix) {
 wig.generateID = generateID;
 
 wig.init = function () {
-    // TODO
+    wig.env.dom = new DOM();
+    wig.env.template = new Template();
+    wig.env.selection = new Selection(wig.env.dom);
 };
 
 /**
@@ -548,7 +553,7 @@ wig.init = function () {
  * @returns {View}
  */
 function renderView(view, node) {
-    node = wig.DOM.selectNode(node);
+    node = wig.env.dom.selectNode(node);
 
     view.setNode(node);
     view.paint();
@@ -827,27 +832,12 @@ extend(View.prototype, {
 
 // View prototype
 extend(View.prototype, {
-    tagName: 'div',
-
-    className: 'View',
-
-    defaults: {},
-
-    renderMap: {},
-
-    dataMap: {},
-
-    events: {},
-
-    View: View,
-
-    template: '',
 
     initialize: function () {
         var dataset = {};
         dataset[DATA_ATTRIBUTE] = this.getID();
         // assign classes and data attributes
-        DOM.initNode(this.getNode(), this.className, dataset);
+        wig.env.dom.initNode(this.getNode(), this.className, dataset);
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
@@ -901,7 +891,7 @@ extend(View.prototype, {
             return node;
         }
 
-        return DOM.getElement(node, selector);
+        return wig.env.dom.getElement(node, selector);
     },
 
     update: function (attributes) {
@@ -917,7 +907,7 @@ extend(View.prototype, {
 
     paint: function () {
         var node = this.getNode(),
-            html = Template.compileTemplateForView(this);
+            html = wig.env.template.compileTemplateForView(this);
 
         node.innerHTML = (html || '');
 
@@ -958,7 +948,8 @@ extend(View.prototype, {
 
         this._children.forEach(this.removeView, this);
         this.node = null;
-        removeViewFromRegistries(this);
+
+        View.removeView(this);
     },
 
     _serializeAndRemoveView: function (childViewID) {
@@ -976,6 +967,24 @@ extend(View.prototype, {
     }
 });
 
+extend(View.prototype, {
+    tagName: 'div',
+
+    className: 'View',
+
+    defaults: {},
+
+    renderMap: {},
+
+    dataMap: {},
+
+    events: {},
+
+    View: View,
+
+    template: ''
+});
+
 // user defined methods defaulting to NoOp
 [
     'onAttach',
@@ -986,4 +995,5 @@ extend(View.prototype, {
     View.prototype[method] = NoOp;
 });
 
+    wig.init();
 }));

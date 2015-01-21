@@ -1,10 +1,14 @@
-var Selection = wig.Selection = {
+var Selection = wig.Selection = Class.extend({
 
     id:   undefined,
     path: undefined,
 
     start: 0,
     end:   0,
+
+    constructor: function (DOM) {
+        this.DOM = DOM;
+    },
 
     preserveSelection: function () {
         var node  = this.getSelectedNode();
@@ -27,7 +31,7 @@ var Selection = wig.Selection = {
 
     preserveSelectionInView: function (updatingView) {
         var node = document.activeElement,
-            focusedViewID = DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
+            focusedViewID = this.DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;
 
@@ -94,4 +98,4 @@ var Selection = wig.Selection = {
     getSelectedNode: function () {
         return document.activeElement;
     }
-};
+});

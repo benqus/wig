@@ -35,7 +35,7 @@
         },
 
         findClosestViewNodeStubFactory: function (viewID) {
-            var stub = sinon.stub(wig.DOM, 'findClosestViewNode');
+            var stub = sinon.stub(wig.env.dom, 'findClosestViewNode');
                 stub.returns(viewID);
 
             return stub;

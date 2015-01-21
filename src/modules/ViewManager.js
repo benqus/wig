@@ -18,7 +18,7 @@ var ViewManager = wig.ViewManager = {
     },
 
     getViewAtNode: function (node) {
-        node = DOM.selectNode(node);
+        node = wig.env.dom.selectNode(node);
         return ViewManager.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
@@ -28,7 +28,7 @@ var ViewManager = wig.ViewManager = {
             rootNode = parentView.getNode();
 
         if (selector) {
-            rootNode = DOM.getElement(rootNode, selector);
+            rootNode = wig.env.dom.getElement(rootNode, selector);
         }
 
         return rootNode;
@@ -42,7 +42,7 @@ var ViewManager = wig.ViewManager = {
 
         view.undelegateAll();
 
-        Selection.preserveSelectionInView(view);
+        wig.env.selection.preserveSelectionInView(view);
 
         if (parent) {
             rootNode = ViewManager.getRootNodeMapping(parent, view);
@@ -56,9 +56,8 @@ var ViewManager = wig.ViewManager = {
 
         view.paint();
 
-        DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
-
-        Selection.restoreSelectionInView(view);
+        wig.env.dom.attachNodeToParent(childNode, rootNode, childNodeIndex);
+        wig.env.selection.restoreSelectionInView(view);
     },
 
     notifyViewAboutAttach: function (viewID) {

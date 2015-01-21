@@ -5,7 +5,7 @@
  * @returns {View}
  */
 function renderView(view, node) {
-    node = wig.DOM.selectNode(node);
+    node = wig.env.dom.selectNode(node);
 
     view.setNode(node);
     view.paint();

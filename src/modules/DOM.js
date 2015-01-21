@@ -1,4 +1,4 @@
-var DOM = wig.DOM = {
+var DOM = wig.DOM = Class.extend({
 
     getElement: function (root, selector) {
         root = this.selectNode(root);
@@ -62,4 +62,4 @@ var DOM = wig.DOM = {
         }
     }
 
-};
+});

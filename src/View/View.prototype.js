@@ -1,26 +1,11 @@
 // View prototype
 extend(View.prototype, {
-    tagName: 'div',
-
-    className: 'View',
-
-    defaults: {},
-
-    renderMap: {},
-
-    dataMap: {},
-
-    events: {},
-
-    View: View,
-
-    template: '',
 
     initialize: function () {
         var dataset = {};
         dataset[DATA_ATTRIBUTE] = this.getID();
         // assign classes and data attributes
-        DOM.initNode(this.getNode(), this.className, dataset);
+        wig.env.dom.initNode(this.getNode(), this.className, dataset);
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
@@ -74,7 +59,7 @@ extend(View.prototype, {
             return node;
         }
 
-        return DOM.getElement(node, selector);
+        return wig.env.dom.getElement(node, selector);
     },
 
     update: function (attributes) {
@@ -90,7 +75,7 @@ extend(View.prototype, {
 
     paint: function () {
         var node = this.getNode(),
-            html = Template.compileTemplateForView(this);
+            html = wig.env.template.compileTemplateForView(this);
 
         node.innerHTML = (html || '');
 
@@ -131,7 +116,8 @@ extend(View.prototype, {
 
         this._children.forEach(this.removeView, this);
         this.node = null;
-        removeViewFromRegistries(this);
+
+        View.removeView(this);
     },
 
     _serializeAndRemoveView: function (childViewID) {
