@@ -1,5 +1,3 @@
-var ViewDataAttribute = 'data-' + DATA_ATTRIBUTE;
-
 var UIEventProxy = wig.UIEventProxy = {
 
     listeners: [],
@@ -25,7 +23,7 @@ var UIEventProxy = wig.UIEventProxy = {
     },
 
     listener: function (event) {
-        var viewID = DOM.findClosestViewNode(event.target, ViewDataAttribute),
+        var viewID = DOM.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
             view = ViewManager.getView(viewID);
 
         if (view) {

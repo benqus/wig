@@ -2,11 +2,12 @@
  * @classdesc Provides a convenient API for a key-value pair store.
  * @class
  */
-function Registry() {
-    this.root = {};
-}
+var Registry = wig.Registry = Class.extend({
 
-extend(Registry.prototype, {
+    constructor: function () {
+        this.root = {};
+    },
+
     /**
      * Returns the stored value for the specified key.
      * Returns {undefined} if key doesn't exist.
@@ -61,5 +62,3 @@ extend(Registry.prototype, {
         Object.keys(this.root).forEach(this.unset, this);
     }
 });
-
-wig.Registry = Registry;

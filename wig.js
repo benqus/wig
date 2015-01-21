@@ -39,10 +39,14 @@ var NoOp = function () {};
  */
 var DATA_ATTRIBUTE = 'wig_view_id';
 
+var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
+
 var arrayIndexOf = Array.prototype.indexOf;
 
-wig.env = {};
 wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
+
+wig.modules = {};
+wig.env = {};
 
 // TODO: improved templating with caching - maybe?
 
@@ -148,11 +152,12 @@ var DOM = wig.DOM = {
  * @classdesc Provides a convenient API for a key-value pair store.
  * @class
  */
-function Registry() {
-    this.root = {};
-}
+var Registry = wig.Registry = Class.extend({
 
-extend(Registry.prototype, {
+    constructor: function () {
+        this.root = {};
+    },
+
     /**
      * Returns the stored value for the specified key.
      * Returns {undefined} if key doesn't exist.
@@ -208,15 +213,13 @@ extend(Registry.prototype, {
     }
 });
 
-wig.Registry = Registry;
-
 var Selection = wig.Selection = {
 
     id:   undefined,
     path: undefined,
 
-    start:  0,
-    end:    0,
+    start: 0,
+    end:   0,
 
     preserveSelection: function () {
         var node  = this.getSelectedNode();
@@ -239,7 +242,7 @@ var Selection = wig.Selection = {
 
     preserveSelectionInView: function (updatingView) {
         var node = document.activeElement,
-            focusedViewID = DOM.findClosestViewNode(node, ViewDataAttribute),
+            focusedViewID = DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;
 
@@ -308,7 +311,7 @@ var Selection = wig.Selection = {
     }
 };
 
-var Template = {
+var Template = wig.Template = {
 
     REGEXP: /\{\{\s*([\w\d\.]+)\s*\}\}/g,
 
@@ -333,7 +336,7 @@ var Template = {
             result = ctx[attribute];
 
             if (typeof result === 'undefined') {
-                result = '';
+                result = res;
             }
 
             return result;
@@ -347,7 +350,7 @@ var Template = {
         if (Array.isArray(template)) {
             template = template.join('');
         } else if (typeof template === 'function') {
-            template = view.template();
+            template = view.template(view.attributes);
         }
 
         markup = this.compile(template, view.attributes, view);
@@ -355,10 +358,6 @@ var Template = {
         return markup;
     }
 };
-
-wig.Template = Template;
-
-var ViewDataAttribute = 'data-' + DATA_ATTRIBUTE;
 
 var UIEventProxy = wig.UIEventProxy = {
 
@@ -385,7 +384,7 @@ var UIEventProxy = wig.UIEventProxy = {
     },
 
     listener: function (event) {
-        var viewID = DOM.findClosestViewNode(event.target, ViewDataAttribute),
+        var viewID = DOM.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
             view = ViewManager.getView(viewID);
 
         if (view) {

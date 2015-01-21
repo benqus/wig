@@ -1,4 +1,4 @@
-var Template = {
+var Template = wig.Template = {
 
     REGEXP: /\{\{\s*([\w\d\.]+)\s*\}\}/g,
 
@@ -23,7 +23,7 @@ var Template = {
             result = ctx[attribute];
 
             if (typeof result === 'undefined') {
-                result = '';
+                result = res;
             }
 
             return result;
@@ -37,7 +37,7 @@ var Template = {
         if (Array.isArray(template)) {
             template = template.join('');
         } else if (typeof template === 'function') {
-            template = view.template();
+            template = view.template(view.attributes);
         }
 
         markup = this.compile(template, view.attributes, view);
@@ -45,5 +45,3 @@ var Template = {
         return markup;
     }
 };
-
-wig.Template = Template;

@@ -21,9 +21,13 @@ var NoOp = function () {};
  */
 var DATA_ATTRIBUTE = 'wig_view_id';
 
+var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
+
 var arrayIndexOf = Array.prototype.indexOf;
 
-wig.env = {};
 wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
+
+wig.modules = {};
+wig.env = {};
 
 // TODO: improved templating with caching - maybe?
