@@ -21,7 +21,9 @@ module.exports = function (grunt) {
                 src: [
                     './src/intro',
 
-                    './src/static.js',
+                    './src/core/vars.js',
+                    './src/core/Class.js',
+
                     './src/*.js',
                     './src/methods/**/*.js',
                     './src/View/**/*.js',

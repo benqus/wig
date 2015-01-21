@@ -1,12 +1,12 @@
 /**
 * Wig - 0.1.0
 */
-(function (global, decorator) {
+(function (global, factory) {
     'use strict';
 
     var wig = {};
 
-    decorator(wig);
+    factory(wig);
 
     if (global.wig) {
         wig._Wig = global.wig;
@@ -16,35 +16,67 @@
 }(window, function (wig) {
     "use strict";
 
+/**
+ * ID
+ * @static
+ * @private
+ * @type {number}
+ */
+var Id = 0;
+
+/**
+ * noop
+ * @static
+ * @function
+ */
+var NoOp = function () {};
+
+/**
+ * Data attribute wig attaches the View#_ID to.
+ * @static
+ * @constant
+ * @type {string}
+ */
+var DATA_ATTRIBUTE = 'wig_view_id';
+
 var arrayIndexOf = Array.prototype.indexOf;
 
-var
-    /**
-     * ID
-     * @static
-     * @private
-     * @type {number}
-     */
-    Id = 0,
-
-    /**
-     * noop
-     * @static
-     * @function
-     */
-    NoOp = function () {},
-
-    /**
-     * Data attribute wig attaches the View#_ID to.
-     * @static
-     * @constant
-     * @type {string}
-     */
-    DATA_ATTRIBUTE = 'wig_view_id';
-
+wig.env = {};
 wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
 
 // TODO: improved templating with caching - maybe?
+
+var Class = wig.Class = function () {};
+
+/**
+ * @static
+ * @param props
+ * @param statik
+ * @returns {*}
+ */
+Class.extend = function (props, statik) {
+    var Super     = this,
+        prototype = Object.create(Super.prototype),
+        Constructor;
+
+    // create constructor if not defined
+    if (props && props.hasOwnProperty('constructor')) {
+        Constructor = props.constructor;
+    } else {
+        Constructor = function () {
+            Super.apply(this, arguments);
+        };
+    }
+    // prototype properties
+    extend(prototype, props);
+    // Constructor (static) properties
+    extend(Constructor, statik);
+    Constructor.extend = Super.extend;
+    // prototype inheritance
+    Constructor.prototype = prototype;
+    Constructor.prototype.constructor = Constructor;
+    return Constructor;
+};
 
 var DOM = wig.DOM = {
 
@@ -108,117 +140,6 @@ var DOM = wig.DOM = {
         } else {
             parentNode.appendChild(childNode);
         }
-    }
-
-};
-
-
-function DataStore(async) {
-    this.root  = {};
-    this.async = (!!async);
-}
-
-extend(DataStore.prototype, {
-
-    _triggerChange: function (type, data) {
-        if (this.async) {
-            setTimeout(EventProxy.trigger
-                .bind(EventProxy, type, data), 0);
-        } else {
-            EventProxy.trigger(type, data);
-        }
-    },
-
-    _ensurePathIsArray: function (path) {
-        if (Array.isArray(path)) {
-            return path;
-        }
-
-        return path.split('.');
-    },
-
-    get: function (rawPath) {
-        var path = this._ensurePathIsArray(rawPath),
-            attribute = path.shift(),
-            context = this.root;
-
-        if (path.length === 0) {
-            return context[attribute];
-        }
-
-        while (context && path.length > 0) {
-            context = context[path.shift()];
-        }
-
-        return (context && context[attribute]);
-    },
-
-    set: function (rawPath, newValue) {
-        var path = this._ensurePathIsArray(rawPath),
-            attribute = path.shift(),
-            context = this.root,
-            oldValue;
-
-        if (path.length === 0) {
-            context[attribute] = newValue;
-        } else {
-            while (context && path.length > 0) {
-                context = context[path.shift()];
-            }
-
-            if (context) {
-                oldValue = context[attribute];
-                context[attribute] = newValue;
-            }
-        }
-
-        this._triggerChange(rawPath, {
-            newValue: newValue,
-            oldValue: oldValue
-        });
-    }
-
-});
-
-wig.DataStore = DataStore;
-
-var EventProxy = wig.EventProxy = {
-
-    _subscriptions: {},
-
-    _ensureTypeExists: function (type) {
-        var subscriptions = this._subscriptions;
-
-        if (!subscriptions[type]) {
-            subscriptions[type] = [];
-        }
-
-        return subscriptions[type];
-    },
-
-    _removeSubscriptionByIndex: function (type, index) {
-        this._subscriptions[type]
-            .splice(index, 1);
-    },
-
-    on: function (type, callback, context, once) {
-        var types = this._ensureTypeExists(type);
-        types.push({
-            callback: callback,
-            once: once
-        });
-    },
-
-    one: function (type, callback) {
-        this.on(type, callback, true);
-    },
-
-    off: function (type, callback) {
-        // TODO
-    },
-
-    trigger: function (type, data) {
-        // TODO
     }
 
 };
