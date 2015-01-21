@@ -617,6 +617,10 @@ function generateID(prefix) {
 
 wig.generateID = generateID;
 
+wig.init = function () {
+    // TODO
+};
+
 /**
  * Renders the provided View instance into a DOM node.
  * @param   {View}    view

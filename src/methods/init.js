@@ -1,0 +1,3 @@
+wig.init = function () {
+    // TODO
+};
