@@ -1,25 +1,35 @@
-var ViewManager = wig.ViewManager = {
+var ViewManager = wig.ViewManager = Class.extend({
+
+    constructor: function (ViewRegistry, DOM, Selection) {
+        this.DOM = DOM;
+        this.Selection = Selection;
+        this.ViewRegistry = ViewRegistry;
+
+        // bound methods for
+        //this.notifyViewAboutAttach = this.notifyViewAboutAttach.bind(this);
+        //this.notifyViewAboutDetach = this.notifyViewAboutDetach.bind(this);
+    },
 
     getView: function (id) {
-        var item = View.Registry.get(id);
+        var item = this.ViewRegistry.get(id);
         return (item && item.view);
     },
 
     getParent: function (id) {
-        var item = View.Registry.get(id);
+        var item = this.ViewRegistry.get(id);
         return (item && item.parent);
     },
 
     getParentView: function (childView) {
         var childID = childView.getID(),
-            parentID = ViewManager.getParent(childID);
+            parentID = this.getParent(childID);
 
-        return ViewManager.getView(parentID);
+        return this.getView(parentID);
     },
 
     getViewAtNode: function (node) {
-        node = wig.env.dom.selectNode(node);
-        return ViewManager.getView(node.dataset[DATA_ATTRIBUTE]);
+        node = this.DOM.selectNode(node);
+        return this.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
     getRootNodeMapping: function (parentView, childView) {
@@ -28,7 +38,7 @@ var ViewManager = wig.ViewManager = {
             rootNode = parentView.getNode();
 
         if (selector) {
-            rootNode = wig.env.dom.getElement(rootNode, selector);
+            rootNode = this.DOM.getElement(rootNode, selector);
         }
 
         return rootNode;
@@ -36,16 +46,16 @@ var ViewManager = wig.ViewManager = {
 
     updateView: function (view) {
         var childNode = view.getNode(),
-            parent = ViewManager.getParentView(view),
+            parent = this.getParentView(view),
             rootNode = childNode.parentNode,
             childNodeIndex;
 
         view.undelegateAll();
 
-        wig.env.selection.preserveSelectionInView(view);
+        this.Selection.preserveSelectionInView(view);
 
         if (parent) {
-            rootNode = ViewManager.getRootNodeMapping(parent, view);
+            rootNode = this.getRootNodeMapping(parent, view);
         }
 
         childNodeIndex = arrayIndexOf.call(rootNode.children, childNode);
@@ -56,22 +66,22 @@ var ViewManager = wig.ViewManager = {
 
         view.paint();
 
-        wig.env.dom.attachNodeToParent(childNode, rootNode, childNodeIndex);
-        wig.env.selection.restoreSelectionInView(view);
+        this.DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
+        this.Selection.restoreSelectionInView(view);
     },
 
     notifyViewAboutAttach: function (viewID) {
-        var view = ViewManager.getView(viewID);
+        var view = this.getView(viewID);
         view.notifyAttach();
     },
 
     notifyViewAboutDetach: function (viewID) {
-        var view = ViewManager.getView(viewID);
+        var view = this.getView(viewID);
         view.notifyDetach();
     },
 
     removeViewFromParent: function (view) {
-        var parentView = ViewManager.getParentView(view),
+        var parentView = this.getParentView(view),
             childViewID = view.getID();
 
         if (parentView) {
@@ -82,9 +92,9 @@ var ViewManager = wig.ViewManager = {
     },
 
     destroyViewAtNode: function (node) {
-        var view = ViewManager.getViewAtNode(node);
+        var view = this.getViewAtNode(node);
         if (view) {
             view.remove();
         }
     }
-};
+});

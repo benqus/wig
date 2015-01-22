@@ -10,7 +10,7 @@ var UIEventProxy = wig.UIEventProxy = {
                 return;
             }
 
-            view = ViewManager.getParentView(view);
+            view = wig.env.viewManager.getParentView(view);
         } while (view);
     },
 
@@ -24,7 +24,7 @@ var UIEventProxy = wig.UIEventProxy = {
 
     listener: function (event) {
         var viewID = wig.env.dom.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
-            view = ViewManager.getView(viewID);
+            view = wig.env.viewManager.getView(viewID);
 
         if (view) {
             return UIEventProxy.findFirstViewAndFireEvent(event, view);

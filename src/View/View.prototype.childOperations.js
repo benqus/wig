@@ -31,7 +31,7 @@ extend(View.prototype, {
     paintChildView: function (childViewID) {
         var childView = this.getView(childViewID);
         if (childView) {
-            ViewManager.updateView(childView);
+            wig.env.viewManager.updateView(childView);
         }
     },
 
@@ -98,6 +98,6 @@ extend(View.prototype, {
         if (this._children.indexOf(id) === -1) {
             id = this.getID() + '.' + id;
         }
-        return ViewManager.getView(id);
+        return wig.env.viewManager.getView(id);
     }
 });

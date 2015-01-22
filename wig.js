@@ -375,7 +375,7 @@ var UIEventProxy = wig.UIEventProxy = {
                 return;
             }
 
-            view = ViewManager.getParentView(view);
+            view = wig.env.viewManager.getParentView(view);
         } while (view);
     },
 
@@ -389,7 +389,7 @@ var UIEventProxy = wig.UIEventProxy = {
 
     listener: function (event) {
         var viewID = wig.env.dom.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
-            view = ViewManager.getView(viewID);
+            view = wig.env.viewManager.getView(viewID);
 
         if (view) {
             return UIEventProxy.findFirstViewAndFireEvent(event, view);
@@ -416,28 +416,38 @@ var UIEventProxy = wig.UIEventProxy = {
     }
 };
 
-var ViewManager = wig.ViewManager = {
+var ViewManager = wig.ViewManager = Class.extend({
+
+    constructor: function (ViewRegistry, DOM, Selection) {
+        this.DOM = DOM;
+        this.Selection = Selection;
+        this.ViewRegistry = ViewRegistry;
+
+        // bound methods for
+        //this.notifyViewAboutAttach = this.notifyViewAboutAttach.bind(this);
+        //this.notifyViewAboutDetach = this.notifyViewAboutDetach.bind(this);
+    },
 
     getView: function (id) {
-        var item = View.Registry.get(id);
+        var item = this.ViewRegistry.get(id);
         return (item && item.view);
     },
 
     getParent: function (id) {
-        var item = View.Registry.get(id);
+        var item = this.ViewRegistry.get(id);
         return (item && item.parent);
     },
 
     getParentView: function (childView) {
         var childID = childView.getID(),
-            parentID = ViewManager.getParent(childID);
+            parentID = this.getParent(childID);
 
-        return ViewManager.getView(parentID);
+        return this.getView(parentID);
     },
 
     getViewAtNode: function (node) {
-        node = wig.env.dom.selectNode(node);
-        return ViewManager.getView(node.dataset[DATA_ATTRIBUTE]);
+        node = this.DOM.selectNode(node);
+        return this.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
     getRootNodeMapping: function (parentView, childView) {
@@ -446,7 +456,7 @@ var ViewManager = wig.ViewManager = {
             rootNode = parentView.getNode();
 
         if (selector) {
-            rootNode = wig.env.dom.getElement(rootNode, selector);
+            rootNode = this.DOM.getElement(rootNode, selector);
         }
 
         return rootNode;
@@ -454,16 +464,16 @@ var ViewManager = wig.ViewManager = {
 
     updateView: function (view) {
         var childNode = view.getNode(),
-            parent = ViewManager.getParentView(view),
+            parent = this.getParentView(view),
             rootNode = childNode.parentNode,
             childNodeIndex;
 
         view.undelegateAll();
 
-        wig.env.selection.preserveSelectionInView(view);
+        this.Selection.preserveSelectionInView(view);
 
         if (parent) {
-            rootNode = ViewManager.getRootNodeMapping(parent, view);
+            rootNode = this.getRootNodeMapping(parent, view);
         }
 
         childNodeIndex = arrayIndexOf.call(rootNode.children, childNode);
@@ -474,22 +484,22 @@ var ViewManager = wig.ViewManager = {
 
         view.paint();
 
-        wig.env.dom.attachNodeToParent(childNode, rootNode, childNodeIndex);
-        wig.env.selection.restoreSelectionInView(view);
+        this.DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
+        this.Selection.restoreSelectionInView(view);
     },
 
     notifyViewAboutAttach: function (viewID) {
-        var view = ViewManager.getView(viewID);
+        var view = this.getView(viewID);
         view.notifyAttach();
     },
 
     notifyViewAboutDetach: function (viewID) {
-        var view = ViewManager.getView(viewID);
+        var view = this.getView(viewID);
         view.notifyDetach();
     },
 
     removeViewFromParent: function (view) {
-        var parentView = ViewManager.getParentView(view),
+        var parentView = this.getParentView(view),
             childViewID = view.getID();
 
         if (parentView) {
@@ -500,12 +510,12 @@ var ViewManager = wig.ViewManager = {
     },
 
     destroyViewAtNode: function (node) {
-        var view = ViewManager.getViewAtNode(node);
+        var view = this.getViewAtNode(node);
         if (view) {
             view.remove();
         }
     }
-};
+});
 
 /**
  * Merges all argument objects into the first one.
@@ -544,6 +554,8 @@ wig.init = function () {
     wig.env.dom = new DOM();
     wig.env.template = new Template();
     wig.env.selection = new Selection(wig.env.dom);
+    wig.env.viewManager = new ViewManager(
+        View.Registry, wig.env.dom, wig.env.selection);
 };
 
 /**
@@ -705,7 +717,7 @@ extend(View.prototype, {
     paintChildView: function (childViewID) {
         var childView = this.getView(childViewID);
         if (childView) {
-            ViewManager.updateView(childView);
+            wig.env.viewManager.updateView(childView);
         }
     },
 
@@ -772,7 +784,7 @@ extend(View.prototype, {
         if (this._children.indexOf(id) === -1) {
             id = this.getID() + '.' + id;
         }
-        return ViewManager.getView(id);
+        return wig.env.viewManager.getView(id);
     }
 });
 
@@ -897,7 +909,7 @@ extend(View.prototype, {
     update: function (attributes) {
         this.notifyDetach();
         this.set(attributes);
-        ViewManager.updateView(this);
+        wig.env.viewManager.updateView(this);
         this.notifyAttach();
     },
 
@@ -924,17 +936,19 @@ extend(View.prototype, {
     notifyAttach: function () {
         this.attached = true;
         this.onAttach();
-        this._children.forEach(ViewManager.notifyViewAboutAttach);
+        this._children.forEach(
+            wig.env.viewManager.notifyViewAboutAttach, wig.env.viewManager);
     },
 
     notifyDetach: function () {
         this.attached = false;
         this.onDetach();
-        this._children.forEach(ViewManager.notifyViewAboutDetach);
+        this._children.forEach(
+            wig.env.viewManager.notifyViewAboutDetach, wig.env.viewManager);
     },
 
     remove: function () {
-        ViewManager.removeViewFromParent(this);
+        wig.env.viewManager.removeViewFromParent(this);
     },
 
     destroy: function () {

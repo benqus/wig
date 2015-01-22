@@ -14,7 +14,7 @@ describe('ViewManager', function () {
             var viewId = 'a',
                 view = viewFixtureFactory(viewId);
 
-            assert.notOk(wig.ViewManager.getParentView(view));
+            assert.notOk(wig.env.viewManager.getParentView(view));
         });
 
         it('returns parent view', function () {
@@ -23,7 +23,7 @@ describe('ViewManager', function () {
                 parent = viewFixtureFactory(parentId),
                 child = viewFixtureFactory(childId, parentId);
 
-            assert.equal(wig.ViewManager.getParentView(child), parent);
+            assert.equal(wig.env.viewManager.getParentView(child), parent);
         });
     });
 
@@ -36,7 +36,7 @@ describe('ViewManager', function () {
                 view: view
             });
 
-            assert.equal(wig.ViewManager.getView(id), view);
+            assert.equal(wig.env.viewManager.getView(id), view);
         });
     });
 
@@ -51,7 +51,7 @@ describe('ViewManager', function () {
                 view: view
             });
 
-            assert.equal(wig.ViewManager.getViewAtNode(div), view);
+            assert.equal(wig.env.viewManager.getViewAtNode(div), view);
         });
     });
 
@@ -60,7 +60,7 @@ describe('ViewManager', function () {
             var viewId = 'a',
                 view = wig.test.viewFixtureFactory(viewId);
 
-            wig.ViewManager.notifyViewAboutAttach(viewId);
+            wig.env.viewManager.notifyViewAboutAttach(viewId);
 
             assert.ok(view.notifyAttach.calledOnce);
         });
@@ -69,7 +69,7 @@ describe('ViewManager', function () {
             var viewId = 'a',
                 view = wig.test.viewFixtureFactory(viewId);
 
-            wig.ViewManager.notifyViewAboutDetach(viewId);
+            wig.env.viewManager.notifyViewAboutDetach(viewId);
 
             assert.ok(view.notifyDetach.calledOnce);
         });
@@ -86,7 +86,7 @@ describe('ViewManager', function () {
             parent.getNode.returns(parentDOMNode);
 
             assert.equal(
-                wig.ViewManager.getRootNodeMapping(parent, child),
+                wig.env.viewManager.getRootNodeMapping(parent, child),
                 parentDOMNode
             );
         });
@@ -103,7 +103,7 @@ describe('ViewManager', function () {
             parent.getNode.returns(parentDOMNode);
             parent.getSelectorForChild.returns(selector);
 
-            wig.ViewManager.getRootNodeMapping(parent, child);
+            wig.env.viewManager.getRootNodeMapping(parent, child);
 
             assert.ok(getElementStub.calledOnce);
             assert.ok(getElementStub.calledWithExactly(parentDOMNode, selector));
@@ -120,7 +120,7 @@ describe('ViewManager', function () {
 
             div.dataset[wig.DATA_ATTRIBUTE] = id;
 
-            wig.ViewManager.destroyViewAtNode(div);
+            wig.env.viewManager.destroyViewAtNode(div);
 
             assert.ok(view.remove.calledOnce);
         });

@@ -65,7 +65,7 @@ extend(View.prototype, {
     update: function (attributes) {
         this.notifyDetach();
         this.set(attributes);
-        ViewManager.updateView(this);
+        wig.env.viewManager.updateView(this);
         this.notifyAttach();
     },
 
@@ -92,17 +92,19 @@ extend(View.prototype, {
     notifyAttach: function () {
         this.attached = true;
         this.onAttach();
-        this._children.forEach(ViewManager.notifyViewAboutAttach);
+        this._children.forEach(
+            wig.env.viewManager.notifyViewAboutAttach, wig.env.viewManager);
     },
 
     notifyDetach: function () {
         this.attached = false;
         this.onDetach();
-        this._children.forEach(ViewManager.notifyViewAboutDetach);
+        this._children.forEach(
+            wig.env.viewManager.notifyViewAboutDetach, wig.env.viewManager);
     },
 
     remove: function () {
-        ViewManager.removeViewFromParent(this);
+        wig.env.viewManager.removeViewFromParent(this);
     },
 
     destroy: function () {
