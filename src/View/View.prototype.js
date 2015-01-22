@@ -109,6 +109,7 @@ extend(View.prototype, {
 
     destroy: function () {
         var parentNode = this.node.parentNode;
+
         this.undelegateAll();
         this.notifyDetach();
 
@@ -117,6 +118,8 @@ extend(View.prototype, {
         }
 
         this._children.forEach(this.removeView, this);
+
+        this.node.innerHTML = '';
         this.node = null;
 
         View.removeView(this);
