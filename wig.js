@@ -590,104 +590,74 @@ wig.renderView = renderView;
  * @property {string} [parentID] - internal
  * @constructor
  */
-function View(options) {
-    options = (options || {});
+var View = wig.View = Class.extend({
 
-    this._childAttributesBeforeUpdate = new Registry();
+    constructor: function View(options) {
+        options = (options || {});
 
-    this._ID           = (options.id || generateID('v'));
-    this._children     = [];
-    this._customEvents = {};
+        this._childAttributesBeforeUpdate = new Registry();
 
-    this.node       = (options.node || document.createElement(this.tagName));
-    this.attached   = false;
-    this.attributes = {};
+        this._ID           = (options.id || generateID('v'));
+        this._children     = [];
+        this._customEvents = {};
 
-    // update default/initial attributes
-    this.set(options.attributes);
-    this.initialize();
+        this.node       = (options.node || document.createElement(this.tagName));
+        this.attached   = false;
+        this.attributes = {};
 
-    View.registerView(this);
-}
+        // update default/initial attributes
+        this.set(options.attributes);
+        this.initialize();
 
-View.Registry = new Registry();
-
-/**
- * Registers a (child) View instance in the ViewRegistry.
- * If parentView is specified, parent View's ID will be mapped against the child View's ID.
- * @param childView
- * @param parentView
- */
-View.registerView = function (childView, parentView) {
-    var viewID = childView.getID();
-
-    View.Registry.set(viewID, {
-        parent: (parentView && parentView.getID()),
-        view: childView
-    });
-};
-
-View.removeView = function (view) {
-    if (typeof view !== 'string') {
-        view = view.getID();
+        View.registerView(this);
     }
+}, {
 
-    View.Registry.unset(view);
-};
+    Registry: new Registry(),
 
-View.inheritCSSClasses = function (superClassName, className) {
-    var classes = [superClassName];
+    /**
+     * Registers a (child) View instance in the ViewRegistry.
+     * If parentView is specified, parent View's ID will be mapped against the child View's ID.
+     * @param childView
+     * @param parentView
+     */
+    registerView: function (childView, parentView) {
+        var viewID = childView.getID();
 
-    if (className) {
-        classes.push(superClassName, className);
-    }
+        View.Registry.set(viewID, {
+            parent: (parentView && parentView.getID()),
+            view: childView
+        });
+    },
 
-    return classes.join(' ');
-};
-
-/**
- * @static
- * @param props
- * @param statik
- * @returns {*}
- */
-View.extend = function (props, statik) {
-    var Super     = this,
-        prototype = Object.create(Super.prototype),
-        Constructor;
-
-    if (props) {
-        // create constructor if not defined
-        if (props.hasOwnProperty('constructor')) {
-            Constructor = props.constructor;
-        } else {
-            Constructor = function () {
-                Super.apply(this, arguments);
-            };
+    removeView: function (view) {
+        if (typeof view !== 'string') {
+            view = view.getID();
         }
-    }
-    // prototype properties
-    extend(prototype, props);
-    // Constructor (static) properties
-    extend(Constructor, statik);
-    Constructor.add = View.add;
-    Constructor.extend = View.extend;
-    // prototype inheritance
-    Constructor.prototype = prototype;
-    Constructor.prototype.constructor = Constructor;
-    Constructor.prototype.className = View.inheritCSSClasses(
-        Super.prototype.className,
-        props.className
-    );
 
-    return Constructor;
+        View.Registry.unset(view);
+    },
+
+    inheritCSSClasses: function (superClassName, className) {
+        var classes = [superClassName];
+
+        if (className) {
+            classes.push(superClassName, className);
+        }
+
+        return classes.join(' ');
+    }
+});
+
+View.extend = function (proto, statik) {
+    statik = (statik || {});
+    statik.add = View.add;
+    return Class.extend.call(this, proto, statik);
 };
 
 View.add = function (options, parentView) {
     return parentView.addView(this, options);
 };
-
-wig.View = View;
 
 extend(View.prototype, {
 
