@@ -215,14 +215,13 @@ var Registry = wig.Registry = Class.extend({
 
 var Selection = wig.Selection = Class.extend({
 
-    id:   undefined,
-    path: undefined,
-
-    start: 0,
-    end:   0,
-
     constructor: function (DOM) {
         this.DOM = DOM;
+
+        this.id = undefined;
+        this.path = undefined;
+        this.start = 0;
+        this.end = 0;
     },
 
     preserveSelection: function () {
@@ -428,10 +427,6 @@ var ViewManager = wig.ViewManager = Class.extend({
         this.DOM = DOM;
         this.Selection = Selection;
         this.ViewRegistry = ViewRegistry;
-
-        // bound methods for
-        //this.notifyViewAboutAttach = this.notifyViewAboutAttach.bind(this);
-        //this.notifyViewAboutDetach = this.notifyViewAboutDetach.bind(this);
     },
 
     getView: function (id) {

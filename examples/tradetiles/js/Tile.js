@@ -19,7 +19,7 @@
             keyup: function (event) {
                 var amount = parseInt(event.target.value);
 
-                if (!isNaN(amount)) {
+                if (!isNaN(amount) && amount !== this.get('amount')) {
                     this.update({
                         amount: amount
                     });

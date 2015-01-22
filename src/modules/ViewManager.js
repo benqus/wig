@@ -4,10 +4,6 @@ var ViewManager = wig.ViewManager = Class.extend({
         this.DOM = DOM;
         this.Selection = Selection;
         this.ViewRegistry = ViewRegistry;
-
-        // bound methods for
-        //this.notifyViewAboutAttach = this.notifyViewAboutAttach.bind(this);
-        //this.notifyViewAboutDetach = this.notifyViewAboutDetach.bind(this);
     },
 
     getView: function (id) {
