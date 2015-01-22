@@ -1,7 +1,8 @@
-describe('DOM#attachNodeToParent', function () {
+describe('DOM', function () {
     'use strict';
 
     var assert = chai.assert,
+        DOM = new wig.DOM(),
         domFixture;
 
     before(function () {
@@ -19,7 +20,7 @@ describe('DOM#attachNodeToParent', function () {
 
             domFixture.innerHTML = '<div></div>';
 
-            wig.env.dom.attachNodeToParent(div, domFixture);
+            DOM.attachNodeToParent(div, domFixture);
 
             assert.equal(domFixture.children[domFixture.children.length - 1], div);
         });
@@ -30,7 +31,7 @@ describe('DOM#attachNodeToParent', function () {
 
             domFixture.innerHTML = '<div></div><div></div>';
 
-            wig.env.dom.attachNodeToParent(div, domFixture, index);
+            DOM.attachNodeToParent(div, domFixture, index);
 
             assert.equal(domFixture.children[index], div);
         });
@@ -51,7 +52,7 @@ describe('DOM#attachNodeToParent', function () {
                 '</div>'
             ].join('');
 
-            wig.env.dom.getElement(domFixture, selector);
+            DOM.getElement(domFixture, selector);
 
             assert.ok(domStub.calledOnce);
             assert.ok(domStub.calledWithExactly(selector));
@@ -75,7 +76,7 @@ describe('DOM#attachNodeToParent', function () {
                 '</div>'
             ].join('');
 
-            wig.env.dom.getElement(domFixture, selector);
+            DOM.getElement(domFixture, selector);
 
             assert.ok(domStub.calledOnce);
             assert.ok(domStub.calledWithExactly(selector));
@@ -91,7 +92,7 @@ describe('DOM#attachNodeToParent', function () {
             var div = document.createElement('div'),
                 classes = 'a b c';
 
-            wig.env.dom.initNode(div, classes);
+            DOM.initNode(div, classes);
 
             assert.equal(div.className, classes);
         });
@@ -100,7 +101,7 @@ describe('DOM#attachNodeToParent', function () {
             var div = document.createElement('div'),
                 classes = ['a', 'b', 'c'];
 
-            wig.env.dom.initNode(div, classes);
+            DOM.initNode(div, classes);
 
             assert.equal(div.className, classes.join(' '));
         });
@@ -114,7 +115,7 @@ describe('DOM#attachNodeToParent', function () {
                     d: 0
                 };
 
-            wig.env.dom.initNode(div, classes);
+            DOM.initNode(div, classes);
 
             assert.equal(div.className, 'a c');
         });
@@ -125,7 +126,7 @@ describe('DOM#attachNodeToParent', function () {
                     a: '1'
                 };
 
-            wig.env.dom.initNode(div, null, dataset);
+            DOM.initNode(div, null, dataset);
 
             assert.deepEqual(div.dataset, dataset);
         });
@@ -137,14 +138,14 @@ describe('DOM#attachNodeToParent', function () {
         it('returns the provided element', function () {
             var node = document.getElementById('fixture');
 
-            assert.equal(wig.env.dom.selectNode(node), node);
+            assert.equal(DOM.selectNode(node), node);
         });
 
         it('returns an element described by a selector', function () {
-            var getElementStub = sinon.stub(wig.env.dom, 'getElement'),
+            var getElementStub = sinon.stub(DOM, 'getElement'),
                 selector = 'fixture';
 
-            wig.env.dom.selectNode(selector);
+            DOM.selectNode(selector);
 
             assert.ok(getElementStub.calledWithExactly(document.body, selector));
 

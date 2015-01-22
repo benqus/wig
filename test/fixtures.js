@@ -34,6 +34,21 @@
             return view;
         },
 
+        viewRegistryFixtureFactory: function () {
+            var viewRegistry = new wig.Registry();
+            return sinon.stub(viewRegistry);
+        },
+
+        DOMFixtureFactory: function () {
+            var dom = new wig.DOM();
+            return sinon.stub(dom);
+        },
+
+        SelectionFixtureFactory: function () {
+            var selection = new wig.Selection();
+            return sinon.stub(selection);
+        },
+
         findClosestViewNodeStubFactory: function (viewID) {
             var stub = sinon.stub(wig.env.dom, 'findClosestViewNode');
                 stub.returns(viewID);
