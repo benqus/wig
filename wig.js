@@ -363,9 +363,15 @@ var Template = wig.Template = Class.extend({
     }
 });
 
-var UIEventProxy = wig.UIEventProxy = {
+var UIEventProxy = wig.UIEventProxy = Class.extend({
 
     listeners: [],
+
+    constructor: function (DOM, ViewManager) {
+        this.DOM = DOM;
+        this.ViewManager = ViewManager;
+        this.listener = this.listener.bind(this);
+    },
 
     findFirstViewAndFireEvent: function (event, view) {
         do {
@@ -375,7 +381,7 @@ var UIEventProxy = wig.UIEventProxy = {
                 return;
             }
 
-            view = wig.env.viewManager.getParentView(view);
+            view = this.ViewManager.getParentView(view);
         } while (view);
     },
 
@@ -388,11 +394,11 @@ var UIEventProxy = wig.UIEventProxy = {
     },
 
     listener: function (event) {
-        var viewID = wig.env.dom.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
-            view = wig.env.viewManager.getView(viewID);
+        var viewID = this.DOM.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
+            view = this.ViewManager.getView(viewID);
 
         if (view) {
-            return UIEventProxy.findFirstViewAndFireEvent(event, view);
+            return this.findFirstViewAndFireEvent(event, view);
         }
     },
 
@@ -414,7 +420,7 @@ var UIEventProxy = wig.UIEventProxy = {
     isListeningTo: function (type) {
         return (this.listeners.indexOf(type) > -1);
     }
-};
+});
 
 var ViewManager = wig.ViewManager = Class.extend({
 
@@ -554,8 +560,12 @@ wig.init = function () {
     wig.env.dom = new DOM();
     wig.env.template = new Template();
     wig.env.selection = new Selection(wig.env.dom);
+
     wig.env.viewManager = new ViewManager(
         View.Registry, wig.env.dom, wig.env.selection);
+
+    wig.env.uiEventProxy = new UIEventProxy(
+        wig.env.dom, wig.env.viewManager);
 };
 
 /**
@@ -805,7 +815,7 @@ extend(View.prototype, {
 
         if (customEvents[type].indexOf(selector) === -1) {
             node = this.find(selector);
-            UIEventProxy.addListener(node, type);
+            wig.env.uiEventProxy.addListener(node, type);
             customEvents[type].push(selector || '');
         }
     },
@@ -814,7 +824,7 @@ extend(View.prototype, {
         var selector = this._customEvents[type],
             node = this.find(selector);
 
-        UIEventProxy.removeListener(node, type);
+        wig.env.uiEventProxy.removeListener(node, type);
     },
 
     undelegateAll: function () {
@@ -822,7 +832,7 @@ extend(View.prototype, {
     },
 
     listenFor: function (type) {
-        UIEventProxy.startListenTo(type);
+        wig.env.uiEventProxy.startListenTo(type);
     },
 
     fireDOMEvent: function (event) {

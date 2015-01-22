@@ -12,7 +12,7 @@ describe('UIEventProxy', function () {
     });
 
     it('exists', function () {
-        assert.ok(wig.UIEventProxy);
+        assert.ok(wig.env.uiEventProxy);
     });
 
     it('event listener searches for the closest DOM Element associated with a view ID' +
@@ -28,7 +28,7 @@ describe('UIEventProxy', function () {
 
         view.hasEvent.returns(true);
 
-        wig.UIEventProxy.listener(event);
+        wig.env.uiEventProxy.listener(event);
 
         assert.ok(find.calledOnce);
         assert.ok(find.calledWithExactly(target, 'data-' + wig.DATA_ATTRIBUTE));
@@ -42,12 +42,12 @@ describe('UIEventProxy', function () {
         var addEventListenerStub = sinon.stub(document, 'addEventListener'),
             eventType = 'click';
 
-        wig.UIEventProxy.startListenTo(eventType);
-        wig.UIEventProxy.startListenTo(eventType);
+        wig.env.uiEventProxy.startListenTo(eventType);
+        wig.env.uiEventProxy.startListenTo(eventType);
 
         assert.ok(addEventListenerStub.calledOnce);
-        assert.ok(addEventListenerStub.calledWithExactly(eventType, wig.UIEventProxy.listener));
-        assert.ok(wig.UIEventProxy.isListeningTo(eventType));
+        assert.ok(addEventListenerStub.calledWithExactly(eventType, wig.env.uiEventProxy.listener));
+        assert.ok(wig.env.uiEventProxy.isListeningTo(eventType));
 
         addEventListenerStub.restore();
     });
@@ -57,11 +57,11 @@ describe('UIEventProxy', function () {
             removeEventListenerStub = sinon.stub(document, 'removeEventListener'),
             eventType = 'click';
 
-        wig.UIEventProxy.stopListenTo(eventType);
+        wig.env.uiEventProxy.stopListenTo(eventType);
 
         assert.ok(removeEventListenerStub.calledOnce);
-        assert.ok(removeEventListenerStub.calledWithExactly(eventType, wig.UIEventProxy.listener));
-        assert.notOk(wig.UIEventProxy.isListeningTo(eventType));
+        assert.ok(removeEventListenerStub.calledWithExactly(eventType, wig.env.uiEventProxy.listener));
+        assert.notOk(wig.env.uiEventProxy.isListeningTo(eventType));
 
         addEventListenerStub.restore();
     });

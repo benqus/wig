@@ -1,6 +1,12 @@
-var UIEventProxy = wig.UIEventProxy = {
+var UIEventProxy = wig.UIEventProxy = Class.extend({
 
     listeners: [],
+
+    constructor: function (DOM, ViewManager) {
+        this.DOM = DOM;
+        this.ViewManager = ViewManager;
+        this.listener = this.listener.bind(this);
+    },
 
     findFirstViewAndFireEvent: function (event, view) {
         do {
@@ -10,7 +16,7 @@ var UIEventProxy = wig.UIEventProxy = {
                 return;
             }
 
-            view = wig.env.viewManager.getParentView(view);
+            view = this.ViewManager.getParentView(view);
         } while (view);
     },
 
@@ -23,11 +29,11 @@ var UIEventProxy = wig.UIEventProxy = {
     },
 
     listener: function (event) {
-        var viewID = wig.env.dom.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
-            view = wig.env.viewManager.getView(viewID);
+        var viewID = this.DOM.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
+            view = this.ViewManager.getView(viewID);
 
         if (view) {
-            return UIEventProxy.findFirstViewAndFireEvent(event, view);
+            return this.findFirstViewAndFireEvent(event, view);
         }
     },
 
@@ -49,4 +55,4 @@ var UIEventProxy = wig.UIEventProxy = {
     isListeningTo: function (type) {
         return (this.listeners.indexOf(type) > -1);
     }
-};
+});
