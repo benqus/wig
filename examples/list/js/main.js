@@ -16,6 +16,10 @@
     var List = wig.View.extend({
         className: 'List',
 
+        defaults: {
+            title: ''
+        },
+
         events: {
             keypress: function (e) {
                 var titleNode = this.find('.title'),

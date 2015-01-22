@@ -70,7 +70,7 @@ extend(View.prototype, {
     },
 
     serialize: function () {
-        return this.attributes;
+        return extend({}, this.defaults, this.attributes);
     },
 
     paint: function () {

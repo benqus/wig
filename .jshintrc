@@ -6,7 +6,7 @@
   "devel": true,
   "eqeqeq": true,
   "eqnull": true,
-  "debug": false,
+  "debug": true,
   "forin": false,
   "freeze": true,
   "immed": true,

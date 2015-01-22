@@ -7,7 +7,7 @@ var Template = wig.Template = Class.extend({
             var path = res.match(/[\w\d]+/g),
                 attribute = path[0],
                 ctx = (context[attribute] != null ? context : view),
-                result;
+                type;
 
             if (path.length > 1) {
                 attribute = path.pop();
@@ -16,17 +16,14 @@ var Template = wig.Template = Class.extend({
                 }
             }
 
-            if (typeof ctx[attribute] === 'function') {
+            type = typeof ctx[attribute];
+            if (type === 'undefined') {
+                return res;
+            } else if (type === 'function') {
                 return ctx[attribute](context);
+            } else {
+                return ctx[attribute];
             }
-
-            result = ctx[attribute];
-
-            if (typeof result === 'undefined') {
-                result = res;
-            }
-
-            return result;
         });
     },
 

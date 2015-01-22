@@ -1,4 +1,4 @@
-describe('registry/Registry', function () {
+describe('modules/Registry', function () {
     "use strict";
 
     var assert = chai.assert;
