@@ -250,7 +250,9 @@ var Selection = wig.Selection = Class.extend({
             viewNode;
 
         if (focusedViewID && focusedViewID === updatingViewID) {
-            this.preserveSelection();
+            try {
+                this.preserveSelection();
+            } catch (e) {}
 
             viewNode = updatingView.getNode();
 
@@ -300,7 +302,9 @@ var Selection = wig.Selection = Class.extend({
             }
 
             // restore selection if node is an editable element
-            this.restoreSelection(node);
+            try {
+                this.restoreSelection(node);
+            } catch (e) {}
 
             node.focus();
 
@@ -336,7 +340,7 @@ var Template = wig.Template = Class.extend({
             if (type === 'undefined') {
                 return res;
             } else if (type === 'function') {
-                return ctx[attribute](context);
+                return (ctx[attribute](context) || '');
             } else {
                 return ctx[attribute];
             }
@@ -601,6 +605,7 @@ var View = wig.View = Class.extend({
         this.node       = (options.node || document.createElement(this.tagName));
         this.attached   = false;
         this.attributes = {};
+        this.callbacks  = (options.callbacks || {});
 
         // update default/initial attributes
         this.set(options.attributes);
@@ -845,6 +850,27 @@ extend(View.prototype, {
         return newAttributes;
     },
 
+    invoke: function (callback) {
+        var args = Array.prototype.slice.call(arguments, 1);
+
+        if (typeof this.callbacks[callback] === 'function') {
+            this.callbacks[callback].apply(null, args);
+        }
+    },
+
+    updateCSSClasses: function () {
+        var cssClasses = [
+            this.className,
+            this.getCSSClass()
+        ];
+
+        wig.env.dom.initNode(this.getNode(), cssClasses);
+    },
+
+    getCSSClass: function () {
+         return '';
+    },
+
     getID: function () {
         return this._ID;
     },
@@ -896,6 +922,7 @@ extend(View.prototype, {
         node.innerHTML = (html || '');
 
         this._emptyAndPreserveChildAttributes();
+        this.updateCSSClasses();
         this.render();
         this._children.forEach(this.paintChildView, this);
     },

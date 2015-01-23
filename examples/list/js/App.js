@@ -3,11 +3,11 @@ var App = {
         var list = new List({
                 attributes: {
                     items: [
-                        {title: 'abc'},
-                        {title: 'bcd'},
-                        {title: 'cde'},
-                        {title: 'def'},
-                        {title: 'efg'}
+                        {title: 'abc', done: false},
+                        {title: 'bcd', done: false},
+                        {title: 'cde', done: true},
+                        {title: 'def', done: true},
+                        {title: 'efg', done: false}
                     ]
                 }
             });

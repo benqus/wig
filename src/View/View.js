@@ -21,6 +21,7 @@ var View = wig.View = Class.extend({
         this.node       = (options.node || document.createElement(this.tagName));
         this.attached   = false;
         this.attributes = {};
+        this.callbacks  = (options.callbacks || {});
 
         // update default/initial attributes
         this.set(options.attributes);

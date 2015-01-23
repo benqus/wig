@@ -35,7 +35,9 @@ var Selection = wig.Selection = Class.extend({
             viewNode;
 
         if (focusedViewID && focusedViewID === updatingViewID) {
-            this.preserveSelection();
+            try {
+                this.preserveSelection();
+            } catch (e) {}
 
             viewNode = updatingView.getNode();
 
@@ -85,7 +87,9 @@ var Selection = wig.Selection = Class.extend({
             }
 
             // restore selection if node is an editable element
-            this.restoreSelection(node);
+            try {
+                this.restoreSelection(node);
+            } catch (e) {}
 
             node.focus();
 

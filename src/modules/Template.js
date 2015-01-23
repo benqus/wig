@@ -20,7 +20,7 @@ var Template = wig.Template = Class.extend({
             if (type === 'undefined') {
                 return res;
             } else if (type === 'function') {
-                return ctx[attribute](context);
+                return (ctx[attribute](context) || '');
             } else {
                 return ctx[attribute];
             }
