@@ -7,13 +7,8 @@ App.Item = wig.View.extend({
         '<span>',
             '<input type="checkbox" {{ getChecked }} />',
         '</span>',
-        '<span>{{ title }}</span>',
-        '<span class="button-wrapper"></span>'
+        '<span>{{ title }}</span>'
     ],
-
-    renderMap: {
-        'remove': '.button-wrapper'
-    },
 
     events: {
         click: function () {
@@ -27,12 +22,6 @@ App.Item = wig.View.extend({
         return this.getChecked();
     },
 
-    getChecked: function () {
-        if (this.get('done')) {
-            return 'checked';
-        }
-    },
-
     render: function () {
         App.Button.add({
             id: 'remove',
@@ -40,5 +29,11 @@ App.Item = wig.View.extend({
                 remove: this.remove.bind(this)
             }
         }, this);
+    },
+
+    getChecked: function () {
+        if (this.get('done')) {
+            return 'checked';
+        }
     }
 });
