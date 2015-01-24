@@ -48,8 +48,6 @@ wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
 wig.modules = {};
 wig.env = {};
 
-// TODO: improved templating with caching - maybe?
-
 var Class = wig.Class = function () {};
 
 /**
