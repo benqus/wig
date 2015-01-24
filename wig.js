@@ -707,13 +707,13 @@ function renderView(view, node) {
 wig.renderView = renderView;
 
 /**
- * @class View
+ * @class
  * @param    {object}  options
- * @property {object} [attributes]
- * @property {Node}   [node]
  * @property {string} [id] - user defined or internal identifier
- * @property {string} [parentID] - internal
- * @constructor
+ * @property {Node}   [node]
+ * @property {string} [cssClass]
+ * @property {object} [callbacks]
+ * @property {object} [attributes]
  */
 var View = wig.View = Class.extend({
 
@@ -729,6 +729,7 @@ var View = wig.View = Class.extend({
         this.node       = (options.node || document.createElement(this.tagName));
         this.attached   = false;
         this.attributes = {};
+        this.cssClass   = (options.cssClass || '');
         this.callbacks  = (options.callbacks || {});
 
         // update default/initial attributes
@@ -946,11 +947,18 @@ extend(View.prototype, {
 // View prototype
 extend(View.prototype, {
 
-    initialize: function () {
-        var dataset = {};
+    initialize: function (options) {
+        var dataset = {},
+            classes = [this.className];
+
         dataset[DATA_ATTRIBUTE] = this.getID();
+
+        if (this.cssClass) {
+            classes.push(this.cssClass);
+        }
+
         // assign classes and data attributes
-        wig.env.dom.initNode(this.getNode(), this.className, dataset);
+        wig.env.dom.initNode(this.getNode(), classes, dataset);
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
@@ -985,7 +993,7 @@ extend(View.prototype, {
     updateCSSClasses: function () {
         var cssClasses = [
             this.className,
-            this.getCSSClass()
+            (this.cssClass || this.getCSSClass())
         ];
 
         wig.env.dom.initNode(this.getNode(), cssClasses);

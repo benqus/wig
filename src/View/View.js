@@ -1,11 +1,11 @@
 /**
- * @class View
+ * @class
  * @param    {object}  options
- * @property {object} [attributes]
- * @property {Node}   [node]
  * @property {string} [id] - user defined or internal identifier
- * @property {string} [parentID] - internal
- * @constructor
+ * @property {Node}   [node]
+ * @property {string} [cssClass]
+ * @property {object} [callbacks]
+ * @property {object} [attributes]
  */
 var View = wig.View = Class.extend({
 
@@ -21,6 +21,7 @@ var View = wig.View = Class.extend({
         this.node       = (options.node || document.createElement(this.tagName));
         this.attached   = false;
         this.attributes = {};
+        this.cssClass   = (options.cssClass || '');
         this.callbacks  = (options.callbacks || {});
 
         // update default/initial attributes

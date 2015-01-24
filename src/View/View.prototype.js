@@ -1,11 +1,18 @@
 // View prototype
 extend(View.prototype, {
 
-    initialize: function () {
-        var dataset = {};
+    initialize: function (options) {
+        var dataset = {},
+            classes = [this.className];
+
         dataset[DATA_ATTRIBUTE] = this.getID();
+
+        if (this.cssClass) {
+            classes.push(this.cssClass);
+        }
+
         // assign classes and data attributes
-        wig.env.dom.initNode(this.getNode(), this.className, dataset);
+        wig.env.dom.initNode(this.getNode(), classes, dataset);
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
@@ -40,7 +47,7 @@ extend(View.prototype, {
     updateCSSClasses: function () {
         var cssClasses = [
             this.className,
-            this.getCSSClass()
+            (this.cssClass || this.getCSSClass())
         ];
 
         wig.env.dom.initNode(this.getNode(), cssClasses);
