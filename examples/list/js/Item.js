@@ -35,7 +35,7 @@ App.Item = wig.View.extend({
         }, this);
     },
 
-    parseAttributes: function (newAttributes) {
+    parseContext: function (newAttributes) {
         return {
             checked: this.getChecked(newAttributes.done)
         };

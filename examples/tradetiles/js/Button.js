@@ -32,7 +32,7 @@
             clearTimeout(this.timeout);
         },
 
-        parseAttributes: function (newAttrs) {
+        parseContext: function (newAttrs) {
             var oldPrice = parseFloat(this.get('price')),
                 price = newAttrs.price.toFixed(5).toString(),
                 dot = price.indexOf('.');

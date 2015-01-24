@@ -965,12 +965,12 @@ extend(View.prototype, {
         var overrides;
 
         if (attributes && typeof attributes === 'object') {
-            overrides = this.parseAttributes(attributes);
+            overrides = this.parseContext(attributes);
             extend(this.attributes, this.defaults, attributes, overrides);
         }
     },
 
-    parseAttributes: function (newAttributes) {
+    parseContext: function (newAttributes) {
         return newAttributes;
     },
 
