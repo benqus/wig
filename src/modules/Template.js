@@ -1,30 +1,7 @@
 var Template = wig.Template = Class.extend({
 
-    REGEXP: /\{\{\s*([\w\d\.]+)\s*\}\}/g,
-
-    compile: function (template, context, view) {
-        return template.replace(this.REGEXP, function (res) {
-            var path = res.match(/[\w\d]+/g),
-                attribute = path[0],
-                ctx = (context[attribute] != null ? context : view),
-                type;
-
-            if (path.length > 1) {
-                attribute = path.pop();
-                while (path.length > 0) {
-                    ctx = ctx[path.shift()];
-                }
-            }
-
-            type = typeof ctx[attribute];
-            if (type === 'undefined') {
-                return res;
-            } else if (type === 'function') {
-                return (ctx[attribute](context) || '');
-            } else {
-                return ctx[attribute];
-            }
-        });
+    constructor: function (Compiler) {
+        this.Compiler = Compiler;
     },
 
     compileTemplateForView: function (view) {
@@ -39,6 +16,6 @@ var Template = wig.Template = Class.extend({
             template = template.join('');
         }
 
-        return this.compile(template, context, view);
+        return this.Compiler.compile(template, context);
     }
 });

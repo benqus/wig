@@ -1,6 +1,7 @@
 wig.init = function () {
     wig.env.dom = new DOM();
-    wig.env.template = new Template();
+    wig.env.compiler = new Compiler();
+    wig.env.template = new Template(wig.env.compiler);
     wig.env.selection = new Selection(wig.env.dom);
 
     wig.env.viewManager = new ViewManager(

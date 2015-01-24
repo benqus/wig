@@ -5,7 +5,7 @@ App.Item = wig.View.extend({
 
     template: [
         '<span>',
-            '<input type="checkbox" {{ getChecked }} />',
+            '<input type="checkbox" {{ checked }} />',
         '</span>',
         '<span>{{ title }}</span>'
     ],
@@ -18,8 +18,12 @@ App.Item = wig.View.extend({
         }
     },
 
+    defaults: {
+        checked: ''
+    },
+
     getCSSClass: function () {
-        return this.getChecked();
+        return this.getChecked(this.get('done'));
     },
 
     render: function () {
@@ -31,9 +35,13 @@ App.Item = wig.View.extend({
         }, this);
     },
 
-    getChecked: function () {
-        if (this.get('done')) {
-            return 'checked';
-        }
+    parseAttributes: function (newAttributes) {
+        return {
+            checked: this.getChecked(newAttributes.done)
+        };
+    },
+
+    getChecked: function (done) {
+        return (done ? 'checked' : '');
     }
 });

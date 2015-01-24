@@ -8,7 +8,7 @@
         className: 'Button',
 
         template: [
-            '<span class="action">{{ upperAction }}</span>',
+            '<span class="action">{{ action }}</span>',
             '<sub>{{ priceParts.sub }}</sub>',
             '<strong>{{ priceParts.mid }}</strong>',
             '<sup>{{ priceParts.sup }}</sup>'
@@ -20,23 +20,16 @@
             }
         },
 
-        upperAction: function (context) {
-            return context.action.toUpperCase();
+        getCSSClass: function () {
+            return this.get('color');
         },
 
         onAttach: function () {
-            this.getNode().className = [this.className, this.get('color')].join(' ');
             this.timeout = setTimeout(this.updatePrice.bind(this), 500 + Math.random() * 500);
         },
 
         onDetach: function () {
             clearTimeout(this.timeout);
-        },
-
-        updatePrice: function () {
-            this.update({
-                price: Math.abs(this.get('price') + Math.random() - Math.random())
-            });
         },
 
         parseAttributes: function (newAttrs) {
@@ -52,6 +45,12 @@
                     sup: price.substr(dot + 3)
                 }
             };
+        },
+
+        updatePrice: function () {
+            this.update({
+                price: Math.abs(this.get('price') + Math.random() - Math.random())
+            });
         }
     });
 }());
