@@ -642,6 +642,10 @@ var ViewManager = wig.ViewManager = Class.extend({
     }
 });
 
+wig.compile = function (template, context) {
+    return wig.env.compiler.compile(template, context);
+};
+
 /**
  * Merges all argument objects into the first one.
  * @param   {object} obj
