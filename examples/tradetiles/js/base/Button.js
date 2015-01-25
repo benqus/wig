@@ -1,13 +1,18 @@
 (function () {
     'use strict';
 
-    TradingApp.Button = wig.View.extend({
+    TradingApp.base.Button = wig.View.extend({
         tagName: 'button',
         className: 'Button',
+
         events: {
-            click: function () {
-                debugger;
-                this.invoke('onClick');
+            click: 'onClick'
+        },
+
+        render: function () {
+            var html = this.get('html');
+            if (html) {
+                this.getNode().innerHTML = html;
             }
         }
     });

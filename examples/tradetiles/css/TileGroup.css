@@ -1,33 +1,62 @@
 .TileGroup {
-    width: 25em;
+    margin: 1.5em;
+    padding: 2.5em 0 2.5em 2.5em;
+    border-radius: 1em;
+    background-color: rgba(0, 0, 0, .65);
+}
+
+.TileGroup .tiles > * {
+    vertical-align: top;
+}
+
+.TileGroup .add-tile {
+    width: 33em;
+    height: 22.5em;
+    line-height: 22.5em;
+    text-align: center;
     display: inline-block;
-    padding: .5em 1em 1.5em 1em;
-    border-radius: .5em;
-    background-color: #ecf0f1;
-    box-shadow: 0 .2em 0 #bdc3c7;
-    margin-top: 1em;
-    margin-right: 1em;
+    border: 3px dashed #fff;
+    border-radius: .75em;
+    background-color: transparent;
+    margin-top: 2.5em;
+    margin-right: 2.5em;
+}
+.TileGroup .add-tile:hover {
+    background: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
 }
 
-.Tile .header {
-    padding-bottom: .5em;
-}
-.Tile .buttons {
-    padding-bottom: 1em;
-}
-
-.Tile .title {
-    font-size: 2em;
-    margin: 0;
-    padding: 0;
-    color: #2c3e50;
-}
-
-.Tile .amount {
-    padding: .5em;
-    /*border: 1px solid #bdc3c7;*/
+.TileGroup .add-tile-btn {
+    background: transparent;
     border: none;
-    border-radius: .3em;
-    box-shadow: 0 .15em 0 #bdc3c7;
+    color: #fff;
+    font-weight: 700;
     outline: none;
+    cursor: inherit;
+}
+
+.TileGroup .add-tile-btn > * {
+    display: inline-block;
+    font-size: 2.5em;
+    vertical-align: middle;
+}
+
+.TileGroup .add-tile-btn .icon {
+    margin-left: .25em;
+}
+
+.TileGroup .currency-select {
+    font-size: 2em;
+    color: #fff;
+    background-color: #1abc9c;
+    padding: .25em .35em;
+    border-radius: .25em;
+    border: none;
+    outline: none;
+}
+
+.TileGroup .currency-select > option {
+    color: #7f8c8d;
+    background-color: #fff;
+    padding: .2em;
 }

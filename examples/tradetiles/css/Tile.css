@@ -1,0 +1,69 @@
+.Tile {
+    min-width: 33em;
+    height: 22.5em;
+    display: inline-block;
+    padding: 1em 1em 1.5em 1em;
+    border-radius: .5em;
+    background-color: #ecf0f1;
+    box-shadow: 0 .2em 0 #bdc3c7;
+    margin-top: 2.5em;
+    margin-right: 2.5em;
+}
+
+.Tile .header {
+    font-size: 2em;
+    position: relative;
+    padding-bottom: .5em;
+}
+
+.Tile .title {
+    margin: 0;
+    padding: 0;
+    color: #7f8c8d;
+    text-shadow: 0 .1em 0 rgba(0, 0, 0, .15);
+}
+.Tile:hover .title,
+.Tile:hover .close {
+    color: #E67e22;
+}
+
+.Tile .close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: .25em;
+    line-height: .85em;
+    text-align: center;
+    background-color: transparent;
+    color: #7f8c8d;
+    border: none;
+    border-radius: .25em;
+    outline: none;
+    cursor: pointer;
+}
+.Tile .close:hover {
+    color: #f39c12;
+    background-color: #c0392b;
+    box-shadow: 0 .1em 0 rgba(0, 0, 0, .15);
+}
+
+.Tile .buttons {
+    padding-bottom: 1.25em;
+}
+
+.Tile .amount {
+    width: 100%;
+    color: #7f8c8d;
+    padding: .25em .5em;
+    border: none;
+    border-radius: .3em;
+    box-shadow: 0 .1em 0 rgba(0, 0, 0, .15);
+    outline: none;
+    font-size: 2em;
+    font-weight: 600;
+}
+
+.Tile .amount:focus {
+    color: #3498db;
+    box-shadow: 0 .1em 0 rgba(52, 152, 219, .8);
+}
