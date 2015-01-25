@@ -2,19 +2,7 @@ var DOM = wig.DOM = Class.extend({
 
     getElement: function (root, selector) {
         root = this.selectNode(root);
-        return root.querySelector(selector);
-    },
-
-    // find all nodes that contain a #Text node
-    // starting with an "@" template tag (to insert a child view)
-    findNodeWithTemplateTags: function (node) {
-        var nodesByTag = {};
-
-        // TODO:
-        // find all #Text nodes with a template tag
-        // register the nde for the template tag key
-
-        return nodesByTag;
+        return (selector ? root.querySelector(selector): root);
     },
 
     selectNode: function (element) {

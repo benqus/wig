@@ -21,10 +21,12 @@ extend(View.prototype, {
     },
 
     undelegate: function (type) {
-        var selector = this._customEvents[type],
-            node = this.find(selector);
+        var selectors = this._customEvents[type];
 
-        wig.env.uiEventProxy.removeListener(node, type);
+        selectors.forEach(function (selector) {
+            var node = this.find(selector);
+            wig.env.uiEventProxy.removeListener(node, type);
+        }, this);
     },
 
     undelegateAll: function () {

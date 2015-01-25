@@ -220,19 +220,7 @@ var DOM = wig.DOM = Class.extend({
 
     getElement: function (root, selector) {
         root = this.selectNode(root);
-        return root.querySelector(selector);
-    },
-
-    // find all nodes that contain a #Text node
-    // starting with an "@" template tag (to insert a child view)
-    findNodeWithTemplateTags: function (node) {
-        var nodesByTag = {};
-
-        // TODO:
-        // find all #Text nodes with a template tag
-        // register the nde for the template tag key
-
-        return nodesByTag;
+        return (selector ? root.querySelector(selector): root);
     },
 
     selectNode: function (element) {
@@ -917,10 +905,12 @@ extend(View.prototype, {
     },
 
     undelegate: function (type) {
-        var selector = this._customEvents[type],
-            node = this.find(selector);
+        var selectors = this._customEvents[type];
 
-        wig.env.uiEventProxy.removeListener(node, type);
+        selectors.forEach(function (selector) {
+            var node = this.find(selector);
+            wig.env.uiEventProxy.removeListener(node, type);
+        }, this);
     },
 
     undelegateAll: function () {
