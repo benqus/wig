@@ -439,7 +439,7 @@ var Selection = wig.Selection = Class.extend({
             index;
 
         if (this.id && this.id === view.getID()) {
-            if (path.length > 0) {
+            if (path && path.length > 0) {
                 do {
                     // dig down to find focused node
                     index = path.pop();

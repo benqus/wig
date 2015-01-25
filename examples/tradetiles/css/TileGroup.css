@@ -1,0 +1,33 @@
+.TileGroup {
+    width: 25em;
+    display: inline-block;
+    padding: .5em 1em 1.5em 1em;
+    border-radius: .5em;
+    background-color: #ecf0f1;
+    box-shadow: 0 .2em 0 #bdc3c7;
+    margin-top: 1em;
+    margin-right: 1em;
+}
+
+.Tile .header {
+    padding-bottom: .5em;
+}
+.Tile .buttons {
+    padding-bottom: 1em;
+}
+
+.Tile .title {
+    font-size: 2em;
+    margin: 0;
+    padding: 0;
+    color: #2c3e50;
+}
+
+.Tile .amount {
+    padding: .5em;
+    /*border: 1px solid #bdc3c7;*/
+    border: none;
+    border-radius: .3em;
+    box-shadow: 0 .15em 0 #bdc3c7;
+    outline: none;
+}

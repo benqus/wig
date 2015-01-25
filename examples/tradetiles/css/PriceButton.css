@@ -1,0 +1,61 @@
+.PriceButton {
+    border: none;
+    border-radius: .5em;
+    cursor: pointer;
+    box-shadow: 0 .2em 0 rgba(0, 0, 0, .15);
+    box-sizing: border-box;
+    color: aliceblue;
+    position: relative;
+    padding: 0;
+    outline: none;
+
+    min-width: 8em;
+    min-height: 8em;
+    width: 50%;
+}
+.PriceButton.buy {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.PriceButton.sell {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* green */
+.PriceButton.green {
+    background-color: #1abc9c;
+}
+.PriceButton.green:hover {
+    background-color: #48c9b0;
+}
+
+/* red */
+.PriceButton.red {
+    background-color: #e74c3c;
+}
+.PriceButton.red:hover {
+    background-color: #ec7063;
+}
+
+.PriceButton .action {
+    display: block;
+    text-transform: uppercase;
+    position: absolute;
+    top: .5em;
+}
+.PriceButton.buy .action {
+    left: 1em;
+}
+.PriceButton.sell .action {
+    right: 1em;
+}
+
+.PriceButton .price {
+    text-shadow: 0 .2em 0 rgba(0, 0, 0, .15);
+}
+
+.PriceButton sub:after {
+    content: '.';
+    display: inline;
+}
