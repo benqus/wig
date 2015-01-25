@@ -38,8 +38,8 @@ extend(View.prototype, {
     fireDOMEvent: function (event) {
         var listener = this.events[event.type];
 
-        if (typeof listener !== 'function' || this[listener]) {
-            listener = this[listener];
+        if (typeof listener !== 'function') {
+            listener = (this[listener] || this.callbacks[listener]);
         }
 
         if (listener) {
