@@ -1,7 +1,7 @@
 var App = {
     initialize: function (List, domRoot) {
         var list = new List({
-                attributes: {
+                context: {
                     items: [
                         {title: 'abc', done: false},
                         {title: 'bcd', done: false},

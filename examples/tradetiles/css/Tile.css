@@ -4,8 +4,8 @@
     display: inline-block;
     padding: 1em 1em 1.5em 1em;
     border-radius: .5em;
-    background-color: #ecf0f1;
-    box-shadow: 0 .2em 0 #bdc3c7;
+    background-color: #2C3E50;
+    box-shadow: 0 .2em 0 #000;
     margin-top: 2.5em;
     margin-right: 2.5em;
 }
@@ -48,7 +48,7 @@
 }
 
 .Tile .buttons {
-    padding-bottom: 1.25em;
+    padding-top: 1.25em;
 }
 
 .Tile .amount {

@@ -3,7 +3,7 @@ var TradingApp = {
 
     initialize: function (domRoot) {
         var tileGroup = new TradingApp.TileGroup({
-            attributes: {
+            context: {
                 selected: [
                     'gbpusd',
                     'gbpeur',

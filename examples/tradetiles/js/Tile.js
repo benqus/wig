@@ -25,10 +25,10 @@
             '<header class="header">',
                 '<h1 class="title">{{ name }}</h1>',
             '</header>',
-            '<section class="buttons"></section>',
             '<section>',
                 '<input type="text" class="amount" value="{{ amount }}" />',
-            '</section>'
+            '</section>',
+            '<section class="buttons"></section>'
         ],
 
         renderMap: {
@@ -63,7 +63,7 @@
         addButton: function (id, action, price) {
             this.addView({
                 id: id,
-                attributes: {
+                context: {
                     price: price,
                     action: action
                 }

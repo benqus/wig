@@ -45,7 +45,7 @@
             TradingApp.Tile
                 .add({
                     id: currency.value,
-                    attributes: currency,
+                    context: currency,
                     callbacks: {
                         onRemove: this.removeTile.bind(this)
                     }
@@ -57,7 +57,7 @@
                 .add({
                     id: 'currencySelector',
                     cssClass: 'currency-select',
-                    attributes: {
+                    context: {
                         options: options
                     },
                     callbacks: {
@@ -70,7 +70,7 @@
             TradingApp.base.Button
                 .add({
                     cssClass: 'add-tile',
-                    attributes: {
+                    context: {
                         html:
                             '<span class="add-tile-btn">' +
                                 '<span class="">Add currency</span>' +

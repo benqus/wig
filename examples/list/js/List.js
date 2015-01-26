@@ -35,7 +35,7 @@ App.List = wig.View.extend({
 
         items.forEach(function (item) {
             App.Item.add({
-                attributes: item
+                context: item
             }, this);
         }, this);
     }

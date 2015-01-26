@@ -21,7 +21,7 @@
             VideoPlayer.Video
                 .add({
                     id: 'video',
-                    attributes: {
+                    context: {
                         source: source,
                         type: 'video/mp4'
                     },
@@ -33,7 +33,7 @@
             VideoPlayer.base.Paragraph
                 .add({
                     id: 'progress',
-                    attributes: {
+                    context: {
                         text: ''
                     }
                 }, this);
