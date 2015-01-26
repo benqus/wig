@@ -8,8 +8,6 @@
 var View = wig.View = Class.extend({
 
     constructor: function View(context) {
-        var p;
-
         context = (context || {});
 
         this._ID           = (context.id || generateID('v'));
@@ -76,5 +74,7 @@ View.extend = function (proto, statik) {
 };
 
 View.add = function (options, parentView) {
+    wig.env.insurer.exists.object(
+        parentView, 'Parent View cannot be undefined!');
     return parentView.addView(this, options);
 };

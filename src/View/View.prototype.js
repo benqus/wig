@@ -54,6 +54,9 @@ extend(View.prototype, {
 
         for (key in context) {
             if (this.props[key]) {
+                wig.env.insurer.is.defined(
+                    this[key], '[' + key + '] is already defined on the View instance!');
+
                 this[key] = context[key];
                 delete context[key];
             }
@@ -61,12 +64,11 @@ extend(View.prototype, {
     },
 
     updateCSSClasses: function () {
-        var cssClasses = [
+        wig.env.dom.initNode(this.getNode(), [
             this.className,
-            (this.css || this.getCSS())
-        ];
-
-        wig.env.dom.initNode(this.getNode(), cssClasses);
+            this.css,
+            this.getCSS()
+        ]);
     },
 
     getCSS: function () {
