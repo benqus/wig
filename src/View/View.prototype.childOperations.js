@@ -56,8 +56,8 @@ extend(View.prototype, {
      */
     addView: function (ViewClass, childOptions) {
         var parentID = this.getID(),
-            childAttributes,
-            attributes,
+            oldChildContext,
+            newChildContext,
             options,
             childID,
             childView;
@@ -70,13 +70,13 @@ extend(View.prototype, {
         childOptions = (childOptions || {});
         childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
 
-        // apply previous attributes
-        childAttributes = this._childAttributesBeforeUpdate.get(childID);
-        attributes = extend({}, childAttributes, childOptions.attributes);
+        // apply previous context
+        oldChildContext = this._childContextBeforeUpdate.get(childID);
+        newChildContext = extend({}, oldChildContext, childOptions.context);
 
         options = extend({}, childOptions, {
             id: childID,
-            attributes: attributes
+            context: newChildContext
         });
 
         childView = this.createChildView(ViewClass, options);

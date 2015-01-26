@@ -294,7 +294,7 @@ var Registry = wig.Registry = Class.extend({
 
     /**
      * Returns the stored value for the specified key.
-     * Returns {undefined} if key doesn't exist.
+     * Returns  {undefined} if key doesn't exist.
      * @param   {string} key
      * @returns {*}
      */
@@ -326,16 +326,13 @@ var Registry = wig.Registry = Class.extend({
      * @throws {TypeError}
      */
     each: function (callback, thisArg) {
-        if (typeof callback !== 'function') {
-            return;
+        var key, value;
+        if (typeof callback === 'function') {
+            for (key in this.root) {
+                value = this.get(key);
+                callback.call(thisArg || this, key, value);
+            }
         }
-
-        thisArg = (thisArg || this);
-
-        Object.keys(this.root).forEach(function (key) {
-            var value = this.get(key);
-            callback.call(thisArg, key, value);
-        }, this);
     },
 
     /**
@@ -640,15 +637,18 @@ wig.compile = function (template, context) {
  * @returns {object}
  */
 function extend(obj) {
-    var args = Array.prototype.slice.call(arguments, 1);
+    var args = Array.prototype.slice.call(arguments, 1),
+        argsLength = args.length,
+        key,
+        i;
 
-    args.forEach(function (o) {
-        if (o && typeof o === 'object') {
-            Object.keys(o).forEach(function (key) {
-                obj[key] = o[key];
-            });
+    for (i = 0; i < argsLength; i += 1) {
+        if (args[i] && typeof args[i] === 'object') {
+            for (key in args[i]) {
+                obj[key] = args[i][key];
+            }
         }
-    });
+    }
 
     return obj;
 }
@@ -705,27 +705,27 @@ wig.renderView = renderView;
  * @property {Node}   [node]
  * @property {string} [cssClass]
  * @property {object} [callbacks]
- * @property {object} [attributes]
+ * @property {object} [context]
  */
 var View = wig.View = Class.extend({
 
     constructor: function View(options) {
         options = (options || {});
 
-        this._childAttributesBeforeUpdate = new Registry();
+        this._childContextBeforeUpdate = new Registry();
 
         this._ID           = (options.id || generateID('v'));
         this._children     = [];
         this._customEvents = {};
 
-        this.node       = (options.node || document.createElement(this.tagName));
-        this.attached   = false;
-        this.attributes = {};
-        this.cssClass   = (options.cssClass || '');
-        this.callbacks  = (options.callbacks || {});
+        this.node      = (options.node || document.createElement(this.tagName));
+        this.attached  = false;
+        this.context   = {};
+        this.cssClass  = (options.cssClass || '');
+        this.callbacks = (options.callbacks || {});
 
-        // update default/initial attributes
-        this.set(options.attributes);
+        // update default/initial context
+        this.set(options.context);
         this.initialize();
 
         View.registerView(this);
@@ -836,8 +836,8 @@ extend(View.prototype, {
      */
     addView: function (ViewClass, childOptions) {
         var parentID = this.getID(),
-            childAttributes,
-            attributes,
+            oldChildContext,
+            newChildContext,
             options,
             childID,
             childView;
@@ -850,13 +850,13 @@ extend(View.prototype, {
         childOptions = (childOptions || {});
         childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
 
-        // apply previous attributes
-        childAttributes = this._childAttributesBeforeUpdate.get(childID);
-        attributes = extend({}, childAttributes, childOptions.attributes);
+        // apply previous context
+        oldChildContext = this._childContextBeforeUpdate.get(childID);
+        newChildContext = extend({}, oldChildContext, childOptions.context);
 
         options = extend({}, childOptions, {
             id: childID,
-            attributes: attributes
+            context: newChildContext
         });
 
         childView = this.createChildView(ViewClass, options);
@@ -905,12 +905,14 @@ extend(View.prototype, {
     },
 
     undelegate: function (type) {
-        var selectors = this._customEvents[type];
+        var selectors = this._customEvents[type],
+            l = selectors.length,
+            node;
 
-        selectors.forEach(function (selector) {
-            var node = this.find(selector);
+        while (l--) {
+            node = this.find(selectors[l]);
             wig.env.uiEventProxy.removeListener(node, type);
-        }, this);
+        }
     },
 
     undelegateAll: function () {
@@ -951,7 +953,7 @@ extend(View.prototype, {
             classes.push(this.cssClass);
         }
 
-        // assign classes and data attributes
+        // assign classes and data context
         wig.env.dom.initNode(this.getNode(), classes, dataset);
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
@@ -959,21 +961,21 @@ extend(View.prototype, {
         this._children.forEach(this.initializeChild);
     },
 
-    get: function (attribute) {
-        return this.attributes[attribute];
+    get: function (key) {
+        return this.context[key];
     },
 
-    set: function (attributes) {
+    set: function (context) {
         var overrides;
 
-        if (attributes && typeof attributes === 'object') {
-            overrides = this.parseContext(attributes);
-            extend(this.attributes, this.defaults, attributes, overrides);
+        if (context && typeof context === 'object') {
+            overrides = this.parseContext(context);
+            extend(this.context, this.defaults, context, overrides);
         }
     },
 
-    parseContext: function (newAttributes) {
-        return newAttributes;
+    parseContext: function (newContext) {
+        return newContext;
     },
 
     invoke: function (callback) {
@@ -1001,8 +1003,8 @@ extend(View.prototype, {
         return this._ID;
     },
 
-    getAttributes: function () {
-        return extend({}, this.attributes);
+    getContext: function () {
+        return this.context;
     },
 
     getSelectorForChild: function (id) {
@@ -1030,15 +1032,15 @@ extend(View.prototype, {
         return wig.env.dom.getElement(node, selector);
     },
 
-    update: function (attributes) {
+    update: function (context) {
         this.notifyDetach();
-        this.set(attributes);
+        this.set(context);
         wig.env.viewManager.updateView(this);
         this.notifyAttach();
     },
 
     serialize: function () {
-        return extend({}, this.defaults, this.attributes);
+        return extend({}, this.defaults, this.context);
     },
 
     paint: function () {
@@ -1047,7 +1049,7 @@ extend(View.prototype, {
 
         node.innerHTML = (html || '');
 
-        this._emptyAndPreserveChildAttributes();
+        this._emptyAndPreserveChildContext();
         this.updateCSSClasses();
         this.render();
         this._children.forEach(this.paintChildView, this);
@@ -1098,12 +1100,12 @@ extend(View.prototype, {
         var childView = this.getView(childViewID),
             serializedChild = childView.serialize();
 
-        this._childAttributesBeforeUpdate.set(childViewID, serializedChild);
+        this._childContextBeforeUpdate.set(childViewID, serializedChild);
         this.removeView(childViewID);
     },
 
-    _emptyAndPreserveChildAttributes: function () {
-        this._childAttributesBeforeUpdate.empty();
+    _emptyAndPreserveChildContext: function () {
+        this._childContextBeforeUpdate.empty();
         this._children.forEach(this._serializeAndRemoveView, this);
         this._children = [];
     }

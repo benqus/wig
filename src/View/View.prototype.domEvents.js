@@ -21,12 +21,14 @@ extend(View.prototype, {
     },
 
     undelegate: function (type) {
-        var selectors = this._customEvents[type];
+        var selectors = this._customEvents[type],
+            l = selectors.length,
+            node;
 
-        selectors.forEach(function (selector) {
-            var node = this.find(selector);
+        while (l--) {
+            node = this.find(selectors[l]);
             wig.env.uiEventProxy.removeListener(node, type);
-        }, this);
+        }
     },
 
     undelegateAll: function () {

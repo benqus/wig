@@ -11,7 +11,7 @@ extend(View.prototype, {
             classes.push(this.cssClass);
         }
 
-        // assign classes and data attributes
+        // assign classes and data context
         wig.env.dom.initNode(this.getNode(), classes, dataset);
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
@@ -19,21 +19,21 @@ extend(View.prototype, {
         this._children.forEach(this.initializeChild);
     },
 
-    get: function (attribute) {
-        return this.attributes[attribute];
+    get: function (key) {
+        return this.context[key];
     },
 
-    set: function (attributes) {
+    set: function (context) {
         var overrides;
 
-        if (attributes && typeof attributes === 'object') {
-            overrides = this.parseContext(attributes);
-            extend(this.attributes, this.defaults, attributes, overrides);
+        if (context && typeof context === 'object') {
+            overrides = this.parseContext(context);
+            extend(this.context, this.defaults, context, overrides);
         }
     },
 
-    parseContext: function (newAttributes) {
-        return newAttributes;
+    parseContext: function (newContext) {
+        return newContext;
     },
 
     invoke: function (callback) {
@@ -61,8 +61,8 @@ extend(View.prototype, {
         return this._ID;
     },
 
-    getAttributes: function () {
-        return extend({}, this.attributes);
+    getContext: function () {
+        return this.context;
     },
 
     getSelectorForChild: function (id) {
@@ -90,15 +90,15 @@ extend(View.prototype, {
         return wig.env.dom.getElement(node, selector);
     },
 
-    update: function (attributes) {
+    update: function (context) {
         this.notifyDetach();
-        this.set(attributes);
+        this.set(context);
         wig.env.viewManager.updateView(this);
         this.notifyAttach();
     },
 
     serialize: function () {
-        return extend({}, this.defaults, this.attributes);
+        return extend({}, this.defaults, this.context);
     },
 
     paint: function () {
@@ -107,7 +107,7 @@ extend(View.prototype, {
 
         node.innerHTML = (html || '');
 
-        this._emptyAndPreserveChildAttributes();
+        this._emptyAndPreserveChildContext();
         this.updateCSSClasses();
         this.render();
         this._children.forEach(this.paintChildView, this);
@@ -158,12 +158,12 @@ extend(View.prototype, {
         var childView = this.getView(childViewID),
             serializedChild = childView.serialize();
 
-        this._childAttributesBeforeUpdate.set(childViewID, serializedChild);
+        this._childContextBeforeUpdate.set(childViewID, serializedChild);
         this.removeView(childViewID);
     },
 
-    _emptyAndPreserveChildAttributes: function () {
-        this._childAttributesBeforeUpdate.empty();
+    _emptyAndPreserveChildContext: function () {
+        this._childContextBeforeUpdate.empty();
         this._children.forEach(this._serializeAndRemoveView, this);
         this._children = [];
     }

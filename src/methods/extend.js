@@ -4,15 +4,18 @@
  * @returns {object}
  */
 function extend(obj) {
-    var args = Array.prototype.slice.call(arguments, 1);
+    var args = Array.prototype.slice.call(arguments, 1),
+        argsLength = args.length,
+        key,
+        i;
 
-    args.forEach(function (o) {
-        if (o && typeof o === 'object') {
-            Object.keys(o).forEach(function (key) {
-                obj[key] = o[key];
-            });
+    for (i = 0; i < argsLength; i += 1) {
+        if (args[i] && typeof args[i] === 'object') {
+            for (key in args[i]) {
+                obj[key] = args[i][key];
+            }
         }
-    });
+    }
 
     return obj;
 }

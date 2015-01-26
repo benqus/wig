@@ -5,27 +5,27 @@
  * @property {Node}   [node]
  * @property {string} [cssClass]
  * @property {object} [callbacks]
- * @property {object} [attributes]
+ * @property {object} [context]
  */
 var View = wig.View = Class.extend({
 
     constructor: function View(options) {
         options = (options || {});
 
-        this._childAttributesBeforeUpdate = new Registry();
+        this._childContextBeforeUpdate = new Registry();
 
         this._ID           = (options.id || generateID('v'));
         this._children     = [];
         this._customEvents = {};
 
-        this.node       = (options.node || document.createElement(this.tagName));
-        this.attached   = false;
-        this.attributes = {};
-        this.cssClass   = (options.cssClass || '');
-        this.callbacks  = (options.callbacks || {});
+        this.node      = (options.node || document.createElement(this.tagName));
+        this.attached  = false;
+        this.context   = {};
+        this.cssClass  = (options.cssClass || '');
+        this.callbacks = (options.callbacks || {});
 
-        // update default/initial attributes
-        this.set(options.attributes);
+        // update default/initial context
+        this.set(options.context);
         this.initialize();
 
         View.registerView(this);

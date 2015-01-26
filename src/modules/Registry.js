@@ -10,7 +10,7 @@ var Registry = wig.Registry = Class.extend({
 
     /**
      * Returns the stored value for the specified key.
-     * Returns {undefined} if key doesn't exist.
+     * Returns  {undefined} if key doesn't exist.
      * @param   {string} key
      * @returns {*}
      */
@@ -42,16 +42,13 @@ var Registry = wig.Registry = Class.extend({
      * @throws {TypeError}
      */
     each: function (callback, thisArg) {
-        if (typeof callback !== 'function') {
-            return;
+        var key, value;
+        if (typeof callback === 'function') {
+            for (key in this.root) {
+                value = this.get(key);
+                callback.call(thisArg || this, key, value);
+            }
         }
-
-        thisArg = (thisArg || this);
-
-        Object.keys(this.root).forEach(function (key) {
-            var value = this.get(key);
-            callback.call(thisArg, key, value);
-        }, this);
     },
 
     /**
