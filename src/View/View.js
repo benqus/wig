@@ -1,31 +1,32 @@
 /**
  * @class
  * @param    {object}  options
- * @property {string} [id] - user defined or internal identifier
+ * @property {string} [id]     - user defined or internal identifier
+ * @property {string} [css]
  * @property {Node}   [node]
- * @property {string} [cssClass]
- * @property {object} [callbacks]
- * @property {object} [context]
  */
 var View = wig.View = Class.extend({
 
-    constructor: function View(options) {
-        options = (options || {});
+    constructor: function View(context) {
+        var p;
 
-        this._childContextBeforeUpdate = new Registry();
+        context = (context || {});
 
-        this._ID           = (options.id || generateID('v'));
+        this._ID           = (context.id || generateID('v'));
         this._children     = [];
         this._customEvents = {};
+        this._childContextBeforeUpdate = new Registry();
 
-        this.node      = (options.node || document.createElement(this.tagName));
         this.attached  = false;
+        this.css       = (context.css || '');
+        this.node      = (context.node || document.createElement(this.tagName));
+        this.callbacks = (context.callbacks || {});
         this.context   = {};
-        this.cssClass  = (options.cssClass || '');
-        this.callbacks = (options.callbacks || {});
+
+        this.cleanupContext(context);
 
         // update default/initial context
-        this.set(options.context);
+        this.set(context);
         this.initialize();
 
         View.registerView(this);

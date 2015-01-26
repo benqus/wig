@@ -43,7 +43,7 @@ extend(View.prototype, {
         var listener = this.events[event.type];
 
         if (typeof listener !== 'function') {
-            listener = (this[listener] || this.callbacks[listener]);
+            listener = this[listener];
         }
 
         if (listener) {

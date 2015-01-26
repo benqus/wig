@@ -1,14 +1,14 @@
 // View prototype
 extend(View.prototype, {
 
-    initialize: function (options) {
+    initialize: function () {
         var dataset = {},
             classes = [this.className];
 
         dataset[DATA_ATTRIBUTE] = this.getID();
 
-        if (this.cssClass) {
-            classes.push(this.cssClass);
+        if (this.css) {
+            classes.push(this.css);
         }
 
         // assign classes and data context
@@ -20,7 +20,7 @@ extend(View.prototype, {
     },
 
     get: function (key) {
-        return this.context[key];
+        return (this.context[key] || this.defaults[key]);
     },
 
     set: function (context) {
@@ -39,21 +39,37 @@ extend(View.prototype, {
     invoke: function (callback) {
         var args = Array.prototype.slice.call(arguments, 1);
 
-        if (typeof this.callbacks[callback] === 'function') {
-            this.callbacks[callback].apply(null, args);
+        if (typeof this[callback] === 'function') {
+            this[callback].apply(null, args);
+        }
+    },
+
+    cleanupContext: function (context) {
+        var key;
+
+        // remove default Wig specific properties
+        delete context.id;
+        delete context.css;
+        delete context.node;
+
+        for (key in context) {
+            if (this.props[key]) {
+                this[key] = context[key];
+                delete context[key];
+            }
         }
     },
 
     updateCSSClasses: function () {
         var cssClasses = [
             this.className,
-            (this.cssClass || this.getCSSClass())
+            (this.css || this.getCSS())
         ];
 
         wig.env.dom.initNode(this.getNode(), cssClasses);
     },
 
-    getCSSClass: function () {
+    getCSS: function () {
          return '';
     },
 

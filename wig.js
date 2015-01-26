@@ -701,31 +701,32 @@ wig.renderView = renderView;
 /**
  * @class
  * @param    {object}  options
- * @property {string} [id] - user defined or internal identifier
+ * @property {string} [id]     - user defined or internal identifier
+ * @property {string} [css]
  * @property {Node}   [node]
- * @property {string} [cssClass]
- * @property {object} [callbacks]
- * @property {object} [context]
  */
 var View = wig.View = Class.extend({
 
-    constructor: function View(options) {
-        options = (options || {});
+    constructor: function View(context) {
+        var p;
 
-        this._childContextBeforeUpdate = new Registry();
+        context = (context || {});
 
-        this._ID           = (options.id || generateID('v'));
+        this._ID           = (context.id || generateID('v'));
         this._children     = [];
         this._customEvents = {};
+        this._childContextBeforeUpdate = new Registry();
 
-        this.node      = (options.node || document.createElement(this.tagName));
         this.attached  = false;
+        this.css       = (context.css || '');
+        this.node      = (context.node || document.createElement(this.tagName));
+        this.callbacks = (context.callbacks || {});
         this.context   = {};
-        this.cssClass  = (options.cssClass || '');
-        this.callbacks = (options.callbacks || {});
+
+        this.cleanupContext(context);
 
         // update default/initial context
-        this.set(options.context);
+        this.set(context);
         this.initialize();
 
         View.registerView(this);
@@ -852,11 +853,10 @@ extend(View.prototype, {
 
         // apply previous context
         oldChildContext = this._childContextBeforeUpdate.get(childID);
-        newChildContext = extend({}, oldChildContext, childOptions.context);
+        newChildContext = extend({}, oldChildContext, childOptions);
 
-        options = extend({}, childOptions, {
-            id: childID,
-            context: newChildContext
+        options = extend({}, newChildContext, {
+            id: childID
         });
 
         childView = this.createChildView(ViewClass, options);
@@ -927,7 +927,7 @@ extend(View.prototype, {
         var listener = this.events[event.type];
 
         if (typeof listener !== 'function') {
-            listener = (this[listener] || this.callbacks[listener]);
+            listener = this[listener];
         }
 
         if (listener) {
@@ -943,14 +943,14 @@ extend(View.prototype, {
 // View prototype
 extend(View.prototype, {
 
-    initialize: function (options) {
+    initialize: function () {
         var dataset = {},
             classes = [this.className];
 
         dataset[DATA_ATTRIBUTE] = this.getID();
 
-        if (this.cssClass) {
-            classes.push(this.cssClass);
+        if (this.css) {
+            classes.push(this.css);
         }
 
         // assign classes and data context
@@ -962,7 +962,7 @@ extend(View.prototype, {
     },
 
     get: function (key) {
-        return this.context[key];
+        return (this.context[key] || this.defaults[key]);
     },
 
     set: function (context) {
@@ -981,21 +981,37 @@ extend(View.prototype, {
     invoke: function (callback) {
         var args = Array.prototype.slice.call(arguments, 1);
 
-        if (typeof this.callbacks[callback] === 'function') {
-            this.callbacks[callback].apply(null, args);
+        if (typeof this[callback] === 'function') {
+            this[callback].apply(null, args);
+        }
+    },
+
+    cleanupContext: function (context) {
+        var key;
+
+        // remove default Wig specific properties
+        delete context.id;
+        delete context.css;
+        delete context.node;
+
+        for (key in context) {
+            if (this.props[key]) {
+                this[key] = context[key];
+                delete context[key];
+            }
         }
     },
 
     updateCSSClasses: function () {
         var cssClasses = [
             this.className,
-            (this.cssClass || this.getCSSClass())
+            (this.css || this.getCSS())
         ];
 
         wig.env.dom.initNode(this.getNode(), cssClasses);
     },
 
-    getCSSClass: function () {
+    getCSS: function () {
          return '';
     },
 
@@ -1117,6 +1133,8 @@ extend(View.prototype, {
     className: 'View',
 
     defaults: {},
+
+    props: {},
 
     renderMap: {},
 

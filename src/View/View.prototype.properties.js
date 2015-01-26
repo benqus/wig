@@ -5,6 +5,8 @@ extend(View.prototype, {
 
     defaults: {},
 
+    props: {},
+
     renderMap: {},
 
     dataMap: {},

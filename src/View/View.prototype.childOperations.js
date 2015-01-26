@@ -72,11 +72,10 @@ extend(View.prototype, {
 
         // apply previous context
         oldChildContext = this._childContextBeforeUpdate.get(childID);
-        newChildContext = extend({}, oldChildContext, childOptions.context);
+        newChildContext = extend({}, oldChildContext, childOptions);
 
-        options = extend({}, childOptions, {
-            id: childID,
-            context: newChildContext
+        options = extend({}, newChildContext, {
+            id: childID
         });
 
         childView = this.createChildView(ViewClass, options);
