@@ -1054,21 +1054,27 @@ extend(View.prototype, {
     },
 
     cleanupContext: function (context) {
-        var key;
+        var props = this.props,
+            prop,
+            l;
 
         // remove default Wig specific properties
         delete context.id;
         delete context.css;
         delete context.node;
 
-        for (key in context) {
-            if (this.props[key]) {
-                wig.env.insurer.is.defined(
-                    this[key], '[' + key + '] is already defined on the View instance!');
+        if (typeof this.props === 'object') {
+            props = Object.keys(this.props);
+        }
+        l = props.length;
 
-                this[key] = context[key];
-                delete context[key];
-            }
+        while (l--) {
+            prop = props[l];
+            wig.env.insurer.is.defined(
+                this[prop], '[' + prop + '] is already defined on the View instance!');
+
+            this[prop] = context[prop];
+            delete context[prop];
         }
     },
 
@@ -1197,22 +1203,49 @@ extend(View.prototype, {
 });
 
 extend(View.prototype, {
+    /**
+     * @type {string}
+     */
     tagName: 'div',
 
+    /**
+     * @type {string}
+     */
     className: 'View',
 
+    /**
+     * @type {object}
+     */
     defaults: {},
 
-    props: {},
-
+    /**
+     * @type {object}
+     */
     renderMap: {},
 
+    /**
+     * @type {object}
+     */
     dataMap: {},
 
+    /**
+     * @type {object}
+     */
     events: {},
 
+    /**
+     * @type {View}
+     */
     View: View,
 
+    /**
+     * @type {object|string[]}
+     */
+    props: {},
+
+    /**
+     * @type {string|string[]|function}
+     */
     template: ''
 });
 
