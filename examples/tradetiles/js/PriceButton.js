@@ -12,7 +12,7 @@
             '</span>'
         ],
 
-        getCSSClass: function () {
+        getCSS: function () {
             return [this.get('color'), this.get('action')].join(' ');
         },
 
@@ -24,13 +24,13 @@
             clearTimeout(this.timeout);
         },
 
-        parseContext: function (newAttrs) {
+        parseContext: function (newContext) {
             var oldPrice = parseFloat(this.get('price')),
-                price = newAttrs.price.toFixed(5).toString(),
+                price = newContext.price.toFixed(5).toString(),
                 endofBold = price.indexOf('.') + 3;
 
             return {
-                color: (!oldPrice || oldPrice < newAttrs.price ? 'green' : 'red'),
+                color: (!oldPrice || oldPrice < newContext.price ? 'green' : 'red'),
                 boldPrice: price.substring(0, endofBold),
                 lightPrice: price.substr(endofBold)
             };

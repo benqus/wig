@@ -5,9 +5,13 @@ App.Button = wig.View.extend({
 
     template: 'x',
 
+    props: {
+        onClick: true
+    },
+
     events: {
         click: function () {
-            this.invoke('remove');
+            this.invoke('onClick');
         }
     }
 });

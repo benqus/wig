@@ -5,6 +5,10 @@
         tagName: 'button',
         className: 'Button',
 
+        props: {
+            onClick: true
+        },
+
         events: {
             click: 'onClick'
         },

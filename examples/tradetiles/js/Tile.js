@@ -5,6 +5,10 @@
         tagName: 'article',
         className: 'Tile',
 
+        props: {
+            onRemove: true
+        },
+
         defaults: {
             amount: 0
         },
@@ -49,10 +53,8 @@
             TradingApp.base.Button
                 .add({
                     id: 'close',
-                    cssClass: 'fa fa-close close',
-                    callbacks: {
-                        onClick: this.onClick.bind(this)
-                    }
+                    css: 'fa fa-close close',
+                    onClick: this.onClick.bind(this)
                 }, this);
         },
 
@@ -63,10 +65,8 @@
         addButton: function (id, action, price) {
             this.addView({
                 id: id,
-                context: {
-                    price: price,
-                    action: action
-                }
+                price: price,
+                action: action
             });
         }
 

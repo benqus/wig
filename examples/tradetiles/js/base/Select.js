@@ -3,7 +3,17 @@
 
     TradingApp.base.Select = wig.View.extend({
         tagName: 'select',
+
         className: 'Select',
+
+        props: {
+            onChange: true
+        },
+
+        defaults: {
+            options: []
+        },
+
         events: {
             change: function () {
                 this.invoke('onChange', this.node.value);

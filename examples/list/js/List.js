@@ -3,6 +3,7 @@ App.List = wig.View.extend({
     className: 'List',
 
     defaults: {
+        items: [],
         title: ''
     },
 
@@ -12,10 +13,7 @@ App.List = wig.View.extend({
                 title = titleNode.value;
 
             if (title && e.keyCode === 13) {
-                this.addItem({
-                    title: title
-                });
-
+                this.addItem(title);
                 titleNode.value = '';
             }
         }
@@ -34,10 +32,17 @@ App.List = wig.View.extend({
         var items = this.get('items');
 
         items.forEach(function (item) {
-            App.Item.add({
-                context: item
-            }, this);
+            App.Item.add(item, this);
         }, this);
-    }
+    },
 
+    addItem: function (title) {
+        var items = this.get('items');
+        items.push({
+            title: title,
+            done: false
+        });
+
+        this.update();
+    }
 });

@@ -22,16 +22,14 @@ App.Item = wig.View.extend({
         checked: ''
     },
 
-    getCSSClass: function () {
+    getCSS: function () {
         return this.getChecked(this.get('done'));
     },
 
     render: function () {
         App.Button.add({
             id: 'remove',
-            callbacks: {
-                remove: this.remove.bind(this)
-            }
+            onClick: this.remove.bind(this)
         }, this);
     },
 

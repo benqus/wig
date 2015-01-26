@@ -42,44 +42,34 @@
         },
 
         addTile: function (currency) {
+            var options = wig.extend({}, currency, {
+                id: currency.value,
+                onRemove: this.removeTile.bind(this)
+            });
+
             TradingApp.Tile
-                .add({
-                    id: currency.value,
-                    context: currency,
-                    callbacks: {
-                        onRemove: this.removeTile.bind(this)
-                    }
-                }, this);
+                .add(options, this);
         },
 
         addCurrencySelector: function (options) {
             TradingApp.base.Select
                 .add({
                     id: 'currencySelector',
-                    cssClass: 'currency-select',
-                    context: {
-                        options: options
-                    },
-                    callbacks: {
-                        onChange: this.selectCurrency.bind(this)
-                    }
+                    css: 'currency-select',
+                    options: options,
+                    onChange: this.selectCurrency.bind(this)
                 }, this);
         },
 
         addNewPlaceholderTile: function () {
             TradingApp.base.Button
                 .add({
-                    cssClass: 'add-tile',
-                    context: {
-                        html:
-                            '<span class="add-tile-btn">' +
-                                '<span class="">Add currency</span>' +
-                                '<span class="fa fa-plus icon"></span>' +
-                            '</span>'
-                    },
-                    callbacks: {
-
-                    }
+                    css: 'add-tile',
+                    html:
+                        '<span class="add-tile-btn">' +
+                            '<span class="">Add currency</span>' +
+                            '<span class="fa fa-plus icon"></span>' +
+                        '</span>'
                 }, this);
         },
 

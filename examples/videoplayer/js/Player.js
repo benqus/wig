@@ -21,21 +21,15 @@
             VideoPlayer.Video
                 .add({
                     id: 'video',
-                    context: {
-                        source: source,
-                        type: 'video/mp4'
-                    },
-                    callbacks: {
-                        onProgress: this.updateProgress.bind(this)
-                    }
+                    source: source,
+                    type: 'video/mp4',
+                    onProgress: this.updateProgress.bind(this)
                 }, this);
 
             VideoPlayer.base.Paragraph
                 .add({
                     id: 'progress',
-                    context: {
-                        text: ''
-                    }
+                    text: ''
                 }, this);
 
             this.addControlButton('fa fa-play', this.playVideo);
@@ -45,10 +39,8 @@
         addControlButton: function (cssClass, callback) {
             VideoPlayer.base.Button
                 .add({
-                    cssClass: cssClass,
-                    callbacks: {
-                        onClick: callback.bind(this)
-                    }
+                    css: cssClass,
+                    onClick: callback.bind(this)
                 }, this);
         },
 

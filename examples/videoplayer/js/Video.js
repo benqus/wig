@@ -3,7 +3,12 @@
 
     VideoPlayer.Video = wig.View.extend({
         tagName: 'video',
+
         className: 'Video',
+
+        props: {
+            onProgress: true
+        },
 
         defaults: {
             width: 360,
