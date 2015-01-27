@@ -59,28 +59,30 @@ extend(View.prototype, {
      */
     addView: function (ViewClass, childOptions) {
         var parentID = this.getID(),
+            contextRegistry = View.Registry.get(parentID).contextRegistry,
             oldChildContext,
             newChildContext,
             options,
             childID,
             childView;
-
+        // resolve arguments
         if (ViewClass && typeof ViewClass === 'object') {
             childOptions = ViewClass;
             ViewClass = (this.View || View);
         }
-
         childOptions = (childOptions || {});
+
+        // generate child id
         childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
 
         // apply previous context
-        oldChildContext = this._childContextBeforeUpdate.get(childID);
+        oldChildContext = contextRegistry.get(childID);
         newChildContext = extend({}, oldChildContext, childOptions);
 
+        // create child view
         options = extend({}, newChildContext, {
             id: childID
         });
-
         childView = this.createChildView(ViewClass, options);
 
         // render child view if parent (this) is attached

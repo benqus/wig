@@ -780,7 +780,6 @@ var View = wig.View = Class.extend({
         this._ID           = (context.id || generateID('v'));
         this._children     = [];
         this._customEvents = {};
-        this._childContextBeforeUpdate = new Registry();
 
         this.attached  = false;
         this.css       = (context.css || '');
@@ -788,11 +787,7 @@ var View = wig.View = Class.extend({
         this.callbacks = (context.callbacks || {});
         this.context   = {};
 
-        this.cleanupContext(context);
-
-        // update default/initial context
-        this.set(context);
-        this.initialize();
+        this.initializeWithContext(context);
 
         View.registerView(this);
     }
@@ -810,6 +805,7 @@ var View = wig.View = Class.extend({
         var viewID = childView.getID();
 
         View.Registry.set(viewID, {
+            contextRegistry: new Registry(),
             parent: (parentView && parentView.getID()),
             view: childView
         });
@@ -820,23 +816,29 @@ var View = wig.View = Class.extend({
             view = view.getID();
         }
 
+        View.Registry.get(view)
+            .contextRegistry.empty();
+
         View.Registry.unset(view);
     },
 
-    inheritCSSClasses: function (superClassName, className) {
-        var classes = [superClassName];
-
+    inheritCSS: function (superClassName, className) {
         if (className) {
-            classes.push(superClassName, className);
+            return superClassName + ' ' + className;
         }
-
-        return classes.join(' ');
+        return superClassName;
     }
 });
 
 View.extend = function (proto, statik) {
     statik = (statik || {});
+
     statik.add = View.add;
+    proto.className = View.inheritCSS(
+        this.prototype.className,
+        proto.className
+    );
+
     return Class.extend.call(this, proto, statik);
 };
 
@@ -907,28 +909,30 @@ extend(View.prototype, {
      */
     addView: function (ViewClass, childOptions) {
         var parentID = this.getID(),
+            contextRegistry = View.Registry.get(parentID).contextRegistry,
             oldChildContext,
             newChildContext,
             options,
             childID,
             childView;
-
+        // resolve arguments
         if (ViewClass && typeof ViewClass === 'object') {
             childOptions = ViewClass;
             ViewClass = (this.View || View);
         }
-
         childOptions = (childOptions || {});
+
+        // generate child id
         childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
 
         // apply previous context
-        oldChildContext = this._childContextBeforeUpdate.get(childID);
+        oldChildContext = contextRegistry.get(childID);
         newChildContext = extend({}, oldChildContext, childOptions);
 
+        // create child view
         options = extend({}, newChildContext, {
             id: childID
         });
-
         childView = this.createChildView(ViewClass, options);
 
         // render child view if parent (this) is attached
@@ -1013,6 +1017,13 @@ extend(View.prototype, {
 // View prototype
 extend(View.prototype, {
 
+    initializeWithContext: function (context) {
+        // update default/initial context
+        this.cleanupContext(context);
+        this.set(context);
+        this.initialize();
+    },
+
     initialize: function () {
         var dataset = {},
             classes = [this.className];
@@ -1037,11 +1048,9 @@ extend(View.prototype, {
 
     set: function (newContext) {
         var overrides;
-
         if (newContext && typeof newContext === 'object') {
             overrides = extend({}, this.defaults, this.context, newContext);
-            overrides = (this.parseContext(overrides) || overrides);
-            extend(this.context, overrides);
+            extend(this.context, (this.parseContext(overrides) || overrides));
         }
     },
 
@@ -1195,12 +1204,18 @@ extend(View.prototype, {
         var childView = this.getView(childViewID),
             serializedChild = childView.serialize();
 
-        this._childContextBeforeUpdate.set(childViewID, serializedChild);
+        // "memorize"
+        View.Registry.get(this.getID())
+            .contextRegistry.set(childViewID, serializedChild);
+
         this.removeView(childViewID);
     },
 
     _emptyAndPreserveChildContext: function () {
-        this._childContextBeforeUpdate.empty();
+        // empty child context registry
+        View.Registry.get(this.getID())
+            .contextRegistry.empty();
+
         this._children.forEach(this._serializeAndRemoveView, this);
         this._children = [];
     }

@@ -1,6 +1,13 @@
 // View prototype
 extend(View.prototype, {
 
+    initializeWithContext: function (context) {
+        // update default/initial context
+        this.cleanupContext(context);
+        this.set(context);
+        this.initialize();
+    },
+
     initialize: function () {
         var dataset = {},
             classes = [this.className];
@@ -25,11 +32,9 @@ extend(View.prototype, {
 
     set: function (newContext) {
         var overrides;
-
         if (newContext && typeof newContext === 'object') {
             overrides = extend({}, this.defaults, this.context, newContext);
-            overrides = (this.parseContext(overrides) || overrides);
-            extend(this.context, overrides);
+            extend(this.context, (this.parseContext(overrides) || overrides));
         }
     },
 
@@ -183,12 +188,18 @@ extend(View.prototype, {
         var childView = this.getView(childViewID),
             serializedChild = childView.serialize();
 
-        this._childContextBeforeUpdate.set(childViewID, serializedChild);
+        // "memorize"
+        View.Registry.get(this.getID())
+            .contextRegistry.set(childViewID, serializedChild);
+
         this.removeView(childViewID);
     },
 
     _emptyAndPreserveChildContext: function () {
-        this._childContextBeforeUpdate.empty();
+        // empty child context registry
+        View.Registry.get(this.getID())
+            .contextRegistry.empty();
+
         this._children.forEach(this._serializeAndRemoveView, this);
         this._children = [];
     }
