@@ -13,7 +13,7 @@ App.List = wig.View.extend({
                 title = titleNode.value;
 
             if (title && e.keyCode === 13) {
-                this.addItem(title);
+                this.createItem(title);
                 titleNode.value = '';
             }
         }
@@ -32,11 +32,23 @@ App.List = wig.View.extend({
         var items = this.get('items');
 
         items.forEach(function (item) {
+            item = wig.extend({}, item, {
+                onRemove: this.removeItem.bind(this, item)
+            });
+
             App.Item.add(item, this);
         }, this);
     },
 
-    addItem: function (title) {
+    removeItem: function (item, childViewID) {
+        var items = this.get('items'),
+            index = items.indexOf(item);
+
+        items.splice(index, 1);
+        this.removeView(childViewID);
+    },
+
+    createItem: function (title) {
         var items = this.get('items');
         items.push({
             title: title,

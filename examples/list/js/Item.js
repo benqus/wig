@@ -18,6 +18,10 @@ App.Item = wig.View.extend({
         }
     },
 
+    props: [
+        'onRemove'
+    ],
+
     defaults: {
         checked: ''
     },
@@ -29,7 +33,7 @@ App.Item = wig.View.extend({
     render: function () {
         App.Button.add({
             id: 'remove',
-            onClick: this.remove.bind(this)
+            onClick: this.onRemove.bind(this, this.getID())
         }, this);
     },
 
