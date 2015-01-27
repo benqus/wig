@@ -23,12 +23,13 @@ extend(View.prototype, {
         return (this.context[key] || this.defaults[key]);
     },
 
-    set: function (context) {
+    set: function (newContext) {
         var overrides;
 
-        if (context && typeof context === 'object') {
-            overrides = this.parseContext(context);
-            extend(this.context, this.defaults, context, overrides);
+        if (newContext && typeof newContext === 'object') {
+            overrides = extend({}, this.defaults, this.context, newContext);
+            overrides = (this.parseContext(overrides) || overrides);
+            extend(this.context, overrides);
         }
     },
 

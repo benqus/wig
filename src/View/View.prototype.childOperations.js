@@ -37,11 +37,14 @@ extend(View.prototype, {
 
     removeView: function (childViewID) {
         var childView = this.getView(childViewID),
-            index = this._children.indexOf(childViewID);
+            index;
 
         if (childView) {
-            childView.destroy();
-            this._children.splice(index, 1);
+            index = this._children.indexOf(childView.getID());
+            if (index > -1) {
+                childView.destroy();
+                this._children.splice(index, 1);
+            }
         }
     },
 

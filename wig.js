@@ -885,11 +885,14 @@ extend(View.prototype, {
 
     removeView: function (childViewID) {
         var childView = this.getView(childViewID),
-            index = this._children.indexOf(childViewID);
+            index;
 
         if (childView) {
-            childView.destroy();
-            this._children.splice(index, 1);
+            index = this._children.indexOf(childView.getID());
+            if (index > -1) {
+                childView.destroy();
+                this._children.splice(index, 1);
+            }
         }
     },
 
@@ -1032,12 +1035,13 @@ extend(View.prototype, {
         return (this.context[key] || this.defaults[key]);
     },
 
-    set: function (context) {
+    set: function (newContext) {
         var overrides;
 
-        if (context && typeof context === 'object') {
-            overrides = this.parseContext(context);
-            extend(this.context, this.defaults, context, overrides);
+        if (newContext && typeof newContext === 'object') {
+            overrides = extend({}, this.defaults, this.context, newContext);
+            overrides = (this.parseContext(overrides) || overrides);
+            extend(this.context, overrides);
         }
     },
 
