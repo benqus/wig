@@ -1063,7 +1063,7 @@ extend(View.prototype, {
         delete context.css;
         delete context.node;
 
-        if (typeof this.props === 'object') {
+        if (typeof this.props === 'object' && !Array.isArray(this.props)) {
             props = Object.keys(this.props);
         }
         l = props.length;
