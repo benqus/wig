@@ -12,8 +12,14 @@ App.Item = wig.View.extend({
 
     events: {
         click: function () {
+            var todo = App.todos.get(this.get('todoID')),
+                checked;
+
+            todo.done = !todo.done;
+            checked = this.getChecked(todo.done);
+
             this.update({
-                done: !this.get('done')
+                checked: checked
             });
         }
     },
@@ -26,6 +32,10 @@ App.Item = wig.View.extend({
         checked: ''
     },
 
+    // ///////// //
+    // overrides //
+    // ///////// //
+
     getCSS: function () {
         return this.getChecked(this.get('done'));
     },
@@ -33,15 +43,24 @@ App.Item = wig.View.extend({
     render: function () {
         App.Button.add({
             id: 'remove',
-            onClick: this.onRemove.bind(this, this.getID())
+            onClick: this.onRemove.bind(this, this.get('todoID'))
         }, this);
     },
 
     parseContext: function (newContext) {
+        var todo = App.todos.get(newContext.todoID);
+
         return {
-            checked: this.getChecked(newContext.done)
+            todoID: newContext.todoID,
+            title: todo.title,
+            done: todo.done,
+            checked: this.getChecked(todo.done)
         };
     },
+
+    // ////// //
+    // custom //
+    // ////// //
 
     getChecked: function (done) {
         return (done ? 'checked' : '');

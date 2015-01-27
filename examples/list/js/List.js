@@ -3,7 +3,6 @@ App.List = wig.View.extend({
     className: 'List',
 
     defaults: {
-        items: [],
         title: ''
     },
 
@@ -29,28 +28,25 @@ App.List = wig.View.extend({
     },
 
     render: function () {
-        var items = this.get('items');
-
-        items.forEach(function (item) {
-            item = wig.extend({}, item, {
-                onRemove: this.removeItem.bind(this, item)
-            });
-
-            App.Item.add(item, this);
-        }, this);
+        App.todos.each(this.addItem, this);
     },
 
-    removeItem: function (item, childViewID) {
-        var items = this.get('items'),
-            index = items.indexOf(item);
+    addItem: function (id) {
+        App.Item
+            .add({
+                id: id,
+                todoID: id,
+                onRemove: this.removeItem.bind(this, id)
+            }, this);
+    },
 
-        items.splice(index, 1);
-        this.removeView(childViewID);
+    removeItem: function (todoId) {
+        App.todos.unset(todoId);
+        this.removeView(todoId);
     },
 
     createItem: function (title) {
-        var items = this.get('items');
-        items.push({
+        App.createTodo({
             title: title,
             done: false
         });

@@ -15,6 +15,10 @@
             'currencySelector': '.currency-selector'
         },
 
+        // ///////// //
+        // overrides //
+        // ///////// //
+
         render: function () {
             var selected = this.get('selected'),
                 currencies = this.get('currencies'),
@@ -40,6 +44,10 @@
 
             this.addNewPlaceholderTile();
         },
+
+        // ////// //
+        // custom //
+        // ////// //
 
         addTile: function (currency) {
             var options = wig.extend({}, currency, {

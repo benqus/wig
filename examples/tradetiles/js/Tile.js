@@ -42,6 +42,10 @@
 
         View: TradingApp.PriceButton,
 
+        // ///////// //
+        // overrides //
+        // ///////// //
+
         onAttach: function () {
             this.delegate('focus', '.amount');
         },
@@ -57,6 +61,10 @@
                     onClick: this.onClick.bind(this)
                 }, this);
         },
+
+        // ////// //
+        // custom //
+        // ////// //
 
         onClick: function () {
             this.invoke('onRemove', this.get('value'));

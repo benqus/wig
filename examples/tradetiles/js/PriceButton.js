@@ -12,6 +12,10 @@
             '</span>'
         ],
 
+        // ///////// //
+        // overrides //
+        // ///////// //
+
         getCSS: function () {
             return [this.get('color'), this.get('action')].join(' ');
         },
@@ -25,16 +29,22 @@
         },
 
         parseContext: function (newContext) {
-            var oldPrice = parseFloat(this.get('price')),
-                price = newContext.price.toFixed(5).toString(),
-                endofBold = price.indexOf('.') + 3;
+            var oldPrice = parseInt(this.get('price')),
+                priceStr = newContext.price.toFixed(5).toString(),
+                endOfBold = priceStr.indexOf('.') + 3;
 
             return {
+                price: newContext.price,
+                action: newContext.action,
                 color: (!oldPrice || oldPrice < newContext.price ? 'green' : 'red'),
-                boldPrice: price.substring(0, endofBold),
-                lightPrice: price.substr(endofBold)
+                boldPrice: priceStr.substring(0, endOfBold),
+                lightPrice: priceStr.substr(endOfBold)
             };
         },
+
+        // ////// //
+        // custom //
+        // ////// //
 
         updatePrice: function () {
             this.update({
