@@ -1,61 +1,17 @@
+/*
+ * View child related operations
+ */
 extend(View.prototype, {
-
-    // ///////// //
-    // PROTECTED //
-    // ///////// //
-
-    /**
-     * @param childViewID
-     */
-    initializeChild: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            childView.initialize();
-        }
-    },
-
-    createChildView: function (ViewClass, options) {
-        var childView = new ViewClass(options);
-        View.registerView(childView, this);
-        this._children.push(childView.getID());
-        return childView;
-    },
-
-    updateChildView: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            childView.update();
-        }
-    },
-
-    paintChildView: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            wig.env.viewManager.updateView(childView);
-        }
-    },
-
-    removeView: function (childViewID) {
-        var childView = this.getView(childViewID),
-            index;
-
-        if (childView) {
-            index = this._children.indexOf(childView.getID());
-            if (index > -1) {
-                childView.destroy();
-                this._children.splice(index, 1);
-            }
-        }
-    },
 
     // ////// //
     // PUBLIC //
     // ////// //
 
     /**
-     * @param ViewClass
-     * @param childOptions
-     * @returns {*}
+     * Creates and adds the child view specified by the child view's _ID attribute.
+     * @param   {Function} ViewClass    - child View type
+     * @param   {object}   childOptions - options to create the child with
+     * @returns {View}
      */
     addView: function (ViewClass, childOptions) {
         var parentID = this.getID(),
@@ -93,15 +49,81 @@ extend(View.prototype, {
         return childView;
     },
 
-    getView: function (id) {
+    /**
+     * Returns the child view specified by the child view's _ID attribute.
+     * @param {string|number} childViewID
+     */
+    getView: function (childViewID) {
+        var children = this._children;
         // if id is an array index instead of a child's ID
-        if (typeof id === 'number' && id < this._children.length) {
-            id = this._children[id];
+        if (typeof childViewID === 'number' && childViewID < children.length) {
+            childViewID = this._children[childViewID];
         }
         // if id is not an absolute id
-        if (this._children.indexOf(id) === -1) {
-            id = this.getID() + '.' + id;
+        if (children.indexOf(childViewID) === -1) {
+            childViewID = this.getID() + '.' + childViewID;
         }
-        return wig.env.viewManager.getView(id);
+        return wig.env.viewManager.getView(childViewID);
+    },
+
+    /**
+     * Removes a child view specified by the child view's _ID attribute.
+     * @param {string} childViewID
+     */
+    removeView: function (childViewID) {
+        var childView = this.getView(childViewID),
+            index;
+
+        if (childView) {
+            index = this._children.indexOf(childView.getID());
+            if (index > -1) {
+                childView.destroy();
+                this._children.splice(index, 1);
+            }
+        }
+    },
+
+    // ///////// //
+    // PROTECTED //
+    // ///////// //
+
+    /**
+     * @param childViewID
+     */
+    initializeChild: function (childViewID) {
+        var childView = this.getView(childViewID);
+        if (childView) {
+            childView.initialize();
+        }
+    },
+
+    /**
+     * @param childViewID
+     */
+    updateChildView: function (childViewID) {
+        var childView = this.getView(childViewID);
+        if (childView) {
+            childView.update();
+        }
+    },
+
+    /**
+     * @param childViewID
+     */
+    paintChildView: function (childViewID) {
+        var childView = this.getView(childViewID);
+        if (childView) {
+            wig.env.viewManager.updateView(childView);
+        }
+    },
+
+    /**
+     * @param childViewID
+     */
+    createChildView: function (ViewClass, options) {
+        var childView = new ViewClass(options);
+        View.registerView(childView, this);
+        this._children.push(childView.getID());
+        return childView;
     }
 });

@@ -1,3 +1,4 @@
+// initialize wig
 wig.init = function () {
     wig.env.dom = new DOM();
     wig.env.insurer = new Insurer();

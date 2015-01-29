@@ -22,11 +22,6 @@ extend(View.prototype, {
     /**
      * @type {object}
      */
-    dataMap: {},
-
-    /**
-     * @type {object}
-     */
     events: {},
 
     /**

@@ -12,7 +12,6 @@ var View = wig.View = Class.extend({
 
         this._ID           = (context.id || generateID('v'));
         this._children     = [];
-        this._customEvents = {};
 
         this.attached  = false;
         this.css       = (context.css || '');
@@ -39,6 +38,7 @@ var View = wig.View = Class.extend({
 
         View.Registry.set(viewID, {
             contextRegistry: new Registry(),
+            customEvents: {},
             parent: (parentView && parentView.getID()),
             view: childView
         });
@@ -49,9 +49,7 @@ var View = wig.View = Class.extend({
             view = view.getID();
         }
 
-        View.Registry.get(view)
-            .contextRegistry.empty();
-
+        View.Registry.get(view).contextRegistry.empty();
         View.Registry.unset(view);
     },
 

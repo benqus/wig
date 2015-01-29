@@ -27,5 +27,4 @@ var arrayIndexOf = Array.prototype.indexOf;
 
 wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
 
-wig.modules = {};
 wig.env = {};

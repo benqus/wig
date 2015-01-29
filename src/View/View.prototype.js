@@ -1,6 +1,10 @@
 // View prototype
 extend(View.prototype, {
 
+    // ///////// //
+    // PROTECTED //
+    // ///////// //
+
     initializeWithContext: function (context) {
         // update default/initial context
         this.cleanupContext(context);
@@ -11,13 +15,12 @@ extend(View.prototype, {
     initialize: function () {
         var dataset = {},
             classes = [this.className];
-
+        // data attributes
         dataset[DATA_ATTRIBUTE] = this.getID();
-
+        // add custom css
         if (this.css) {
             classes.push(this.css);
         }
-
         // assign classes and data context
         wig.env.dom.initNode(this.getNode(), classes, dataset);
         // apply event listeners
@@ -26,35 +29,10 @@ extend(View.prototype, {
         this._children.forEach(this.initializeChild);
     },
 
-    get: function (key) {
-        return (this.context[key] || this.defaults[key]);
-    },
-
-    set: function (newContext) {
-        var overrides;
-        if (newContext && typeof newContext === 'object') {
-            overrides = extend({}, this.defaults, this.context, newContext);
-            extend(this.context, (this.parseContext(overrides) || overrides));
-        }
-    },
-
-    parseContext: function (newContext) {
-        return newContext;
-    },
-
-    invoke: function (callback) {
-        var args = Array.prototype.slice.call(arguments, 1);
-
-        if (typeof this[callback] === 'function') {
-            this[callback].apply(null, args);
-        }
-    },
-
     cleanupContext: function (context) {
         var props = this.props,
             prop,
             l;
-
         // remove default Wig specific properties
         delete context.id;
         delete context.css;
@@ -83,52 +61,10 @@ extend(View.prototype, {
         ]);
     },
 
-    getCSS: function () {
-         return '';
-    },
-
-    getID: function () {
-        return this._ID;
-    },
-
-    getContext: function () {
-        return this.context;
-    },
-
     getSelectorForChild: function (id) {
         var childView = this.getView(id),
             childID = childView.getID().split('.').pop();
         return (this.renderMap[childID] || this.renderMap['*']);
-    },
-
-    getNode: function () {
-        return this.node;
-    },
-
-    setNode: function (node) {
-        this.node = node;
-        this.initialize();
-    },
-
-    find: function (selector) {
-        var node = this.getNode();
-
-        if (!selector) {
-            return node;
-        }
-
-        return wig.env.dom.getElement(node, selector);
-    },
-
-    update: function (context) {
-        this.notifyDetach();
-        this.set(context);
-        wig.env.viewManager.updateView(this);
-        this.notifyAttach();
-    },
-
-    serialize: function () {
-        return extend({}, this.defaults, this.context);
     },
 
     paint: function () {
@@ -141,11 +77,6 @@ extend(View.prototype, {
         this.updateCSSClasses();
         this.render();
         this._children.forEach(this.paintChildView, this);
-    },
-
-    empty: function () {
-        this._children.forEach(this.removeView, this);
-        this._children = [];
     },
 
     notifyAttach: function () {
@@ -162,13 +93,10 @@ extend(View.prototype, {
             wig.env.viewManager.notifyViewAboutDetach, wig.env.viewManager);
     },
 
-    remove: function () {
-        wig.env.viewManager.removeViewFromParent(this);
-    },
-
+    // Method is invoked by remove
     destroy: function () {
         var parentNode = this.node.parentNode;
-
+        // remove custom events and notify children about removal
         this.undelegateAll();
         this.notifyDetach();
 
@@ -188,7 +116,6 @@ extend(View.prototype, {
         var childView = this.getView(childViewID),
             serializedChild = childView.serialize();
 
-        // "memorize"
         View.Registry.get(this.getID())
             .contextRegistry.set(childViewID, serializedChild);
 
