@@ -9,8 +9,8 @@ extend(View.prototype, {
 
     /**
      * Creates and adds the child view specified by the child view's _ID attribute.
-     * @param   {Function} ViewClass    - child View type
-     * @param   {object}   childOptions - options to create the child with
+     * @param   {Function} [ViewClass]    - child View type
+     * @param   {object}   [childOptions] - options to create the child with
      * @returns {View}
      */
     addView: function (ViewClass, childOptions) {
@@ -27,20 +27,14 @@ extend(View.prototype, {
             ViewClass = (this.View || View);
         }
         childOptions = (childOptions || {});
-
         // generate child id
         childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
-
         // apply previous context
         oldChildContext = contextRegistry.get(childID);
         newChildContext = extend({}, oldChildContext, childOptions);
-
         // create child view
-        options = extend({}, newChildContext, {
-            id: childID
-        });
+        options = extend(newChildContext, { id: childID });
         childView = this.createChildView(ViewClass, options);
-
         // render child view if parent (this) is attached
         if (this.attached) {
             this.paintChildView(childID);
@@ -118,7 +112,8 @@ extend(View.prototype, {
     },
 
     /**
-     * @param childViewID
+     * @param {View}   ViewClass
+     * @param {object} options
      */
     createChildView: function (ViewClass, options) {
         var childView = new ViewClass(options);

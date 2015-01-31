@@ -34,19 +34,20 @@
             return view;
         },
 
-        viewRegistryFixtureFactory: function () {
-            var viewRegistry = new wig.Registry();
-            return sinon.stub(viewRegistry);
-        },
-
-        DOMFixtureFactory: function () {
-            var dom = new wig.DOM();
-            return sinon.stub(dom);
-        },
-
-        SelectionFixtureFactory: function () {
-            var selection = new wig.Selection();
-            return sinon.stub(selection);
+        click: function (el){
+            var event = document.createEvent("MouseEvent");
+            event.initMouseEvent(
+                "click",
+                true /* bubble */,
+                true /* cancelable */,
+                window, null,
+                0, 0, 0, 0, /* coordinates */
+                false, false, false, false, /* modifier keys */
+                0 /*left*/,
+                null
+            );
+            el.dispatchEvent(event);
+            return event;
         },
 
         findClosestViewNodeStubFactory: function (viewID) {
