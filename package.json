@@ -1,0 +1,33 @@
+{
+  "name": "Wig",
+  "version": "0.1.0-rc",
+  "description": "Minimalistic, scalable, extensible, dependency-less Front-end factory for HTML5 applications",
+  "main": "./wig.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:benqus/wig.git"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/grunt test",
+    "build": "./node_modules/.bin/grunt build",
+    "deploy": "./node_modules/.bin/grunt deploy"
+  },
+  "keywords": [
+    "wig",
+    "rendering"
+  ],
+  "author": "Bence Kormos <ben.kormos@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^1.10.0",
+    "es5-shim": "^4.0.5",
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-concat": "^0.5.0",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-uglify": "^0.6.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-mocha": "^0.4.11",
+    "sinon": "^1.12.2"
+  }
+}

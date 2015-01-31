@@ -1,0 +1,14 @@
+(function (global, factory) {
+    'use strict';
+
+    var wig = {};
+
+    factory(wig);
+
+    if (global.wig) {
+        wig._Wig = global.wig;
+    }
+
+    global.wig = wig;
+}(window, function (wig) {
+    "use strict";

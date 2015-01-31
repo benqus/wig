@@ -1,0 +1,5 @@
+.idea
+node_modules
+
+test-results.xml
+npm-debug.log
