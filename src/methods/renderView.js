@@ -6,8 +6,8 @@
  */
 function renderView(view, node) {
     node = wig.env.dom.selectNode(node);
+    node.appendChild(view.getNode());
 
-    view.setNode(node);
     view.paint();
     view.notifyAttach();
 

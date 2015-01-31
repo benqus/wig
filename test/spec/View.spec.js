@@ -3,16 +3,10 @@ describe('View', function () {
 
     var assert = chai.assert,
         View   = wig.View,
-        domFixture,
-        viewRoot;
+        domFixture;
 
     before(function () {
         domFixture = document.getElementById('fixture');
-    });
-
-    beforeEach(function () {
-        viewRoot = document.createElement('div');
-        domFixture.appendChild(viewRoot);
     });
 
     afterEach(function () {
@@ -57,13 +51,13 @@ describe('View', function () {
         assert.equal(view.get('b'), b);
     });
 
-    it('wig.renderView reinitializes the View for the provided node', function () {
+    it('wig.renderView appends the View in the provided node', function () {
         var view = new View();
 
-        wig.renderView(view, viewRoot);
+        wig.renderView(view, domFixture);
 
         assert.equal(view.attached, true);
-        assert.equal(view.node, viewRoot);
+        assert.equal(view.getNode().parentNode, domFixture);
     });
 
 });

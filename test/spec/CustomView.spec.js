@@ -3,16 +3,10 @@ describe('View - custom', function () {
 
     var assert = chai.assert,
         View   = wig.View,
-        domFixture,
-        viewRoot;
+        domFixture;
 
     before(function () {
         domFixture = document.getElementById('fixture');
-    });
-
-    beforeEach(function () {
-        viewRoot = document.createElement('div');
-        domFixture.appendChild(viewRoot);
     });
 
     afterEach(function () {
@@ -66,9 +60,9 @@ describe('View - custom', function () {
                 title: title
             });
 
-        wig.renderView(view, viewRoot);
+        wig.renderView(view, domFixture);
 
-        assert.equal(viewRoot.innerHTML, template.replace('{{ title }}', title));
+        assert.equal(view.getNode().innerHTML, template.replace('{{ title }}', title));
     });
 
     it('renders template with context', function () {
@@ -81,9 +75,9 @@ describe('View - custom', function () {
                 title: title
             });
 
-        wig.renderView(view, viewRoot);
+        wig.renderView(view, domFixture);
 
-        assert.equal(viewRoot.innerHTML, template.replace('{{ title }}', title));
+        assert.equal(view.getNode().innerHTML, template.replace('{{ title }}', title));
     });
 
     it('props are available on the View instance', function () {
@@ -106,11 +100,7 @@ describe('View - custom', function () {
     });
 
     it('events are invoked on the View instance', function (done) {
-        var event = {
-                target: viewRoot,
-                type: 'click'
-            },
-            CustomView = View.extend({
+        var CustomView = View.extend({
                 events: {
                     click: function (evt) {
                         assert.equal(evt, event);
@@ -118,9 +108,13 @@ describe('View - custom', function () {
                     }
                 }
             }),
-            view = new CustomView();
+            view = new CustomView(),
+            event = {
+                target: view.getNode(),
+                type: 'click'
+            };
 
-        wig.renderView(view, viewRoot);
+        wig.renderView(view, domFixture);
 
         wig.env.uiEventProxy.listener(event);
     });
@@ -161,28 +155,26 @@ describe('View - custom', function () {
     it('onAttach is executed after the has been rendered into the DOM', function () {
         var CustomView = View.extend({
                 onAttach: function () {
-                    assert.equal(viewRoot.parentNode, domFixture);
+                    assert.equal(this.getNode().parentNode, domFixture);
                 }
             }),
             view = new CustomView();
 
-        wig.renderView(view, viewRoot);
+        wig.renderView(view, domFixture);
     });
 
     it('onDetach is before the is detached from the DOM', function () {
-        var div = document.createElement('div'),
-            CustomView = View.extend({
+        var CustomView = View.extend({
                 onDetach: function () {
-                    assert.equal(this.getNode().parentNode, viewRoot);
+                    assert.equal(this.getNode().parentNode, domFixture);
                 }
             }),
             view = new CustomView();
 
-        viewRoot.appendChild(div);
-        wig.renderView(view, div);
+        wig.renderView(view, domFixture);
         view.remove();
 
-        assert.equal(div.parentNode, null);
+        assert.equal(view.getNode(), null);
     });
 
 });
