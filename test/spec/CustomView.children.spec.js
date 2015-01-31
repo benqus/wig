@@ -2,16 +2,10 @@ describe('CustomView with child Views', function () {
 
     var assert = chai.assert,
         View = wig.View,
-        domFixture,
-        viewRoot;
+        domFixture;
 
     before(function () {
         domFixture = document.getElementById('fixture');
-    });
-    
-    beforeEach(function () {
-        viewRoot = document.createElement('div');
-        domFixture.appendChild(viewRoot);
     });
 
     afterEach(function () {
@@ -30,11 +24,11 @@ describe('CustomView with child Views', function () {
             }),
             view = new CustomView();
 
-        wig.renderView(view, viewRoot);
+        wig.renderView(view, domFixture);
 
-        assert(viewRoot.children.length, 2);
-        assert(viewRoot.children[0].dataset[wig.DATA_ATTRIBUTE], child1.getID());
-        assert(viewRoot.children[1].dataset[wig.DATA_ATTRIBUTE], child2.getID());
+        assert(view.getNode().children.length, 2);
+        assert(view.getNode().children[0].dataset[wig.DATA_ATTRIBUTE], child1.getID());
+        assert(view.getNode().children[1].dataset[wig.DATA_ATTRIBUTE], child2.getID());
     });
 
     it('View renders (appends) child nodes in order into the template with "*"', function () {
@@ -53,7 +47,7 @@ describe('CustomView with child Views', function () {
             view = new CustomView(),
             section;
 
-        wig.renderView(view, viewRoot);
+        wig.renderView(view, domFixture);
         section = view.getNode().children[0];
 
         assert(section.children.length, 2);
@@ -86,9 +80,9 @@ describe('CustomView with child Views', function () {
             }),
             view = new CustomView();
 
-        wig.renderView(view, viewRoot);
+        wig.renderView(view, domFixture);
 
-        assert(viewRoot.querySelector('.first').firstChild.dataset[wig.DATA_ATTRIBUTE], child1.getID());
-        assert(viewRoot.querySelector('.second').firstChild.dataset[wig.DATA_ATTRIBUTE], child2.getID());
+        assert(view.getNode().querySelector('.first').firstChild.dataset[wig.DATA_ATTRIBUTE], child1.getID());
+        assert(view.getNode().querySelector('.second').firstChild.dataset[wig.DATA_ATTRIBUTE], child2.getID());
     });
 });

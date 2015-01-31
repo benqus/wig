@@ -1,16 +1,19 @@
 describe('methods/renderView', function () {
     'use strict';
 
-    var assert = chai.assert;
+    var assert = chai.assert,
+        domFixture;
+
+    before(function () {
+        domFixture = document.getElementById('fixture');
+    });
 
     it('generates a unique ID with a prefix', function () {
-        var view = wig.test.viewFixtureFactory('a'),
-            node = document.getElementById('fixture');
+        var view = wig.test.viewFixtureFactory('a');
+        view.getNode.returns(document.createElement('div'));
 
-        wig.renderView(view, node);
+        wig.renderView(view, domFixture);
 
-        assert.ok(view.setNode.calledOnce);
-        assert.ok(view.setNode.calledWithExactly(node));
         assert.ok(view.paint.calledOnce);
         assert.ok(view.notifyAttach.calledOnce);
     });
