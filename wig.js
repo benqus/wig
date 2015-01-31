@@ -1,5 +1,5 @@
 /**
-* Wig - 0.1.0
+* Wig - 0.1.0-rc
 */
 (function (global, factory) {
     'use strict';

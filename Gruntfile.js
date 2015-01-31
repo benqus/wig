@@ -12,6 +12,20 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: pkg,
 
+        jshint: {
+            options: {
+                jshintrc: '.jshintrc'
+            },
+            files: {
+                src: [
+                    'Gruntfile.js',
+                    'src/**/*.js',
+                    'test/**/*.js',
+                    'examples/**/*.js'
+                ]
+            }
+        },
+
         concat: {
             build: {
                 options: {
@@ -39,22 +53,11 @@ module.exports = function (grunt) {
             }
         },
 
-        jshint: {
-            options: {
-                jshintrc: '.jshintrc'
-            },
-            files: {
-                src: [
-                    'Gruntfile.js',
-                    'src/**/*.js',
-                    'test/**/*.js',
-                    'examples/**/*.js'
-                ]
-            }
-        },
-
         uglify: {
             build: {
+                options: {
+                    banner: banner
+                },
                 files: {
                     'wig.min.js': 'wig.js'
                 }
@@ -69,7 +72,7 @@ module.exports = function (grunt) {
                 options: {
                     reporter: 'XUnit'
                 },
-                src: ['test/spec-runner.html'],
+                src: ['test/spec-runner.min.html'],
                 dest: 'test-results.xml'
             }
         },
@@ -97,5 +100,5 @@ module.exports = function (grunt) {
     grunt.registerTask('dev', ['jshint', 'test', 'watch']);
     grunt.registerTask('build', ['jshint', 'concat']);
     grunt.registerTask('test', ['build', 'mocha:dev']);
-    grunt.registerTask('deploy', ['build', 'uglify', 'mocha:ci']);
+    grunt.registerTask('deploy', ['build', 'mocha:ci', 'uglify']);
 };

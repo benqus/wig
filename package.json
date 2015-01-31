@@ -1,7 +1,7 @@
 {
   "name": "Wig",
-  "version": "0.1.0",
-  "description": "Minimalistic, scalable, dependency-less Front-end factory.",
+  "version": "0.1.0-rc",
+  "description": "Minimalistic, scalable, extensible, dependency-less Front-end factory for HTML5 applications",
   "main": "./wig.js",
   "repository": {
     "type": "git",
@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/grunt test",
-    "build": "./node_modules/.bin/grunt build"
+    "build": "./node_modules/.bin/grunt build",
+    "deploy": "./node_modules/.bin/grunt deploy"
   },
   "keywords": [
     "wig",

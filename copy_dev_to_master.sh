@@ -14,8 +14,4 @@ git checkout dev .jshintrc
 git checkout dev Gruntfile.js
 git checkout dev package.json
 git checkout dev wig.js
-
-# commit latest version of the files in
-git add .
-git commit -m "Update latest version by $( cat ./.git/refs/heads/dev )"
-git push
+git checkout dev examples
