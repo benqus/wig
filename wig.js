@@ -1130,11 +1130,17 @@ extend(View.prototype, {
     },
 
     updateCSSClasses: function () {
-        wig.env.dom.initNode(this.getNode(), [
-            this.className,
-            this.css,
-            this.getCSS()
-        ]);
+        var classes = [this.className],
+            customCSS = this.getCSS();
+
+        if (this.css) {
+            classes.push(this.css);
+        }
+        if(customCSS) {
+            classes.push(customCSS);
+        }
+
+        wig.env.dom.initNode(this.getNode(), classes);
     },
 
     getSelectorForChild: function (id) {
