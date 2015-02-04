@@ -16,6 +16,37 @@
 }(window, function (wig) {
     "use strict";
 
+// user overrides to introduce backwards compatibility
+var api = wig.api = {
+
+    /**
+     * Method compiles a template with a context object.
+     * If selector is empty or not defined it will return the original node
+     * Introduce custom DOM query by override.
+     * @param   {Element} element
+     * @param   {string}  selector
+     * @returns {Element}
+     */
+    getElement: function (element, selector) {
+        return (selector ? element.querySelector(selector) : element);
+    },
+
+    /**
+     * Method compiles a template with a context object.
+     * Introduce custom template compilation by override.
+     * @param   {string} template
+     * @param   {object} context
+     * @returns {String}
+     */
+    compile: function (template, context) {
+        return wig.env.compiler.compile(template, context);
+    }
+
+};
+
+// wig internal environment
+var env = wig.env = {};
+
 /**
  * ID
  * @static
@@ -44,8 +75,6 @@ var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
 var arrayIndexOf = Array.prototype.indexOf;
 
 wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
-
-wig.env = {};
 
 var Class = wig.Class = function () {};
 
@@ -217,30 +246,17 @@ var Compiler = wig.Compiler = Class.extend({
 
 var DOM = wig.DOM = Class.extend({
 
-    getElement: function (root, selector) {
-        root = this.selectNode(root);
-        return (selector ? root.querySelector(selector): root);
-    },
-
-    selectNode: function (element) {
-        if (typeof element === 'string') {
-            element = this.getElement(document.body, element);
-        }
-
-        return element;
-    },
-
     initNode: function (element, classSet, dataSet) {
         var classes = classSet,
-            i;
+            cl;
 
         if (Array.isArray(classSet)) {
             classes = classSet.join(' ');
         } else if (classSet && typeof classSet === 'object') {
             classes = [];
-            for (i in classSet) {
-                if (classSet.hasOwnProperty(i) && classSet[i]) {
-                    classes.push(i);
+            for (cl in classSet) {
+                if (classSet.hasOwnProperty(cl) && classSet[cl]) {
+                    classes.push(cl);
                 }
             }
             classes = classes.join(' ');
@@ -421,7 +437,7 @@ var Selection = wig.Selection = Class.extend({
     },
 
     preserveSelection: function () {
-        var node  = this.getSelectedNode();
+        var node  = document.activeElement;
 
         this.start = node.selectionStart;
         this.end   = node.selectionEnd;
@@ -507,32 +523,6 @@ var Selection = wig.Selection = Class.extend({
             this.id = undefined;
             this.path = undefined;
         }
-    },
-
-    getSelectedNode: function () {
-        return document.activeElement;
-    }
-});
-
-var Template = wig.Template = Class.extend({
-
-    constructor: function (Compiler) {
-        this.Compiler = Compiler;
-    },
-
-    compileTemplateForView: function (view) {
-        var template = view.template,
-            context = view.serialize();
-
-        if (typeof template === 'function') {
-            return view.template(context);
-        }
-
-        if (Array.isArray(template)) {
-            template = template.join('');
-        }
-
-        return this.Compiler.compile(template, context);
     }
 });
 
@@ -621,7 +611,6 @@ var ViewManager = wig.ViewManager = Class.extend({
     },
 
     getViewAtNode: function (node) {
-        node = this.DOM.selectNode(node);
         return this.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
@@ -630,11 +619,22 @@ var ViewManager = wig.ViewManager = Class.extend({
             selector = parentView.getSelectorForChild(viewID),
             rootNode = parentView.getNode();
 
-        if (selector) {
-            rootNode = this.DOM.getElement(rootNode, selector);
+        return api.getElement(rootNode, selector);
+    },
+
+    compileTemplate: function (view) {
+        var template = view.template,
+            context = view.serialize();
+
+        if (typeof template === 'function') {
+            return view.template(context);
         }
 
-        return rootNode;
+        if (Array.isArray(template)) {
+            template = template.join('');
+        }
+
+        return api.compile(template, context);
     },
 
     updateView: function (view) {
@@ -693,16 +693,6 @@ var ViewManager = wig.ViewManager = Class.extend({
 });
 
 /**
- * Method compiles a template with a context object
- * @param {string} template
- * @param {object} context
- * @returns {String}
- */
-wig.compile = function (template, context) {
-    return wig.env.compiler.compile(template, context);
-};
-
-/**
  * Merges all argument objects into the first one.
  * @param   {object} obj
  * @returns {object}
@@ -743,7 +733,6 @@ wig.init = function () {
     wig.env.dom = new DOM();
     wig.env.insurer = new Insurer();
     wig.env.compiler = new Compiler();
-    wig.env.template = new Template(wig.env.compiler);
     wig.env.selection = new Selection(wig.env.dom);
 
     wig.env.viewManager = new ViewManager(
@@ -760,7 +749,6 @@ wig.init = function () {
  * @returns {View}
  */
 function renderView(view, node) {
-    node = wig.env.dom.selectNode(node);
     node.appendChild(view.getNode());
 
     view.paint();
@@ -1151,7 +1139,7 @@ extend(View.prototype, {
 
     paint: function () {
         var node = this.getNode(),
-            html = wig.env.template.compileTemplateForView(this);
+            html = env.viewManager.compileTemplate(this);
 
         node.innerHTML = (html || '');
 
@@ -1359,7 +1347,7 @@ extend(View.prototype, {
         if (!selector) {
             return node;
         }
-        return wig.env.dom.getElement(node, selector);
+        return api.getElement(node, selector);
     },
 
     /**

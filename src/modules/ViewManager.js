@@ -24,7 +24,6 @@ var ViewManager = wig.ViewManager = Class.extend({
     },
 
     getViewAtNode: function (node) {
-        node = this.DOM.selectNode(node);
         return this.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
@@ -33,11 +32,22 @@ var ViewManager = wig.ViewManager = Class.extend({
             selector = parentView.getSelectorForChild(viewID),
             rootNode = parentView.getNode();
 
-        if (selector) {
-            rootNode = this.DOM.getElement(rootNode, selector);
+        return api.getElement(rootNode, selector);
+    },
+
+    compileTemplate: function (view) {
+        var template = view.template,
+            context = view.serialize();
+
+        if (typeof template === 'function') {
+            return view.template(context);
         }
 
-        return rootNode;
+        if (Array.isArray(template)) {
+            template = template.join('');
+        }
+
+        return api.compile(template, context);
     },
 
     updateView: function (view) {

@@ -75,7 +75,7 @@ extend(View.prototype, {
 
     paint: function () {
         var node = this.getNode(),
-            html = wig.env.template.compileTemplateForView(this);
+            html = env.viewManager.compileTemplate(this);
 
         node.innerHTML = (html || '');
 
