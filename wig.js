@@ -159,37 +159,40 @@ var Compiler = wig.Compiler = Class.extend({
     },
 
     /**
+     * Discovers the nested/attribute to fetch from attribute passed.
+     * @param   {string} sanitized - bound
+     * @param   {Object} map - attributes
+     * @returns {String}
+     */
+    replacer: function (sanitized, map) {
+        var result = map[sanitized[0]],
+            length = sanitized.length,
+            ns = map,
+            i = 0;
+        // digging down the namespace
+        if (length > 1) {
+            while (ns && i < length) {
+                ns = ns[sanitized[i++]];
+            }
+            result = ns;
+        }
+        return result;
+    },
+
+    /**
      * Memoizes a method for a placeholder to access attributes.
      * @param   {String} placeholder - eg: "{{ myPlaceholder }}"
      * @type    {Function}
      * @returns {Function}
      */
     compilerMethodFactory: function (placeholder) {
-        var length = (placeholder.length - 2);
-        var sanitized = placeholder.substring(2, length).trim().split(".");
-        var l = sanitized.length;
+        var sanitized = placeholder.substring(
+            this.start.length,
+            placeholder.length - this.end.length
+        );
+        sanitized = sanitized.trim().split(".");
 
-        /**
-         * Discovers the nested/attribute to fetch from attribute passed.
-         * @param   {Object} map - attributes
-         * @returns {String}
-         */
-        return function (map) {
-            var result = map[sanitized[0]];
-            var ns = map;
-            var i = 0;
-
-            // digging down the namespace
-            if (l > 1) {
-                while (ns && i < l) {
-                    ns = ns[sanitized[i++]];
-                }
-
-                result = ns;
-            }
-
-            return result;
-        };
+        return this.replacer.bind(this, sanitized);
     },
 
     /**
@@ -200,28 +203,25 @@ var Compiler = wig.Compiler = Class.extend({
      */
     generateCompiledResult: function (text) {
         // placeholders to replace
-        var placeholders = text.match(this.regExp);
-        var i = 0;
-        var splitText, compiledResults;
+        var placeholders = text.match(this.regExp),
+            i = 0,
+            splitText, compiledResults;
 
         if (placeholders) {
             // actual template content
             splitText = text.split(this.regExp);
-
             // precompiled array of content
             compiledResults = [];
-
             while (placeholders.length > 0) {
                 compiledResults.push(
                     splitText[i],
                     this.compilerMethodFactory(placeholders.shift())
                 );
-
                 i += 1;
             }
 
             compiledResults.push(splitText[i]);
-
+            // cache template
             this.templateCache.set(text, compiledResults);
         }
 
@@ -236,9 +236,9 @@ var Compiler = wig.Compiler = Class.extend({
      * @returns {String}
      */
     compile: function (text, context) {
-        var compiledTemplate = this.templateCache.get(text);
-        var markup = "";
-        var item, i, l;
+        var compiledTemplate = this.templateCache.get(text),
+            markup = "",
+            item, i, l;
 
         if (!compiledTemplate) {
             compiledTemplate = this.generateCompiledResult(text);
@@ -270,7 +270,6 @@ var Compiler = wig.Compiler = Class.extend({
     disposeMarkups: function () {
         this.templateCache.empty();
     }
-
 });
 
 var DOM = wig.DOM = Class.extend({
