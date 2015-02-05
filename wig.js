@@ -1,20 +1,38 @@
 /**
-* Wig - 0.1.0-rc
+* Wig - 0.2.0
 */
-(function (global, factory) {
-    'use strict';
+// Uses Node, AMD or browser globals to create a module. This example creates
+// a global even when AMD is used. This is useful if you have some scripts
+// that are loaded by an AMD loader, but they still want access to globals.
+// If you do not need to export a global for the AMD case,
+// see returnExports.js.
 
-    var wig = {};
+// If you want something that will work in other stricter CommonJS environments,
+// or if you need to create a circular dependency, see commonJsStrictGlobal.js
 
-    factory(wig);
+// Defines a module "returnExportsGlobal" that depends another module called
+// "b". Note that the name of the module is implied by the file name. It is
+// best if the file name and the exported global have matching names.
 
-    if (global.wig) {
-        wig._Wig = global.wig;
+// If the 'b' module also uses this type of boilerplate, then
+// in the browser, it will create a global .b that is used below.
+
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(function () {
+            return (root.wig = factory({}));
+        });
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like enviroments that support module.exports,
+        // like Node.
+        module.exports = factory({});
+    } else {
+        // Browser globals
+        root.wig = factory({});
     }
-
-    global.wig = wig;
-}(window, function (wig) {
-    "use strict";
+}(this, function (wig) {
 
 /*
  * @namespace
@@ -1399,4 +1417,9 @@ extend(View.prototype, {
 });
 
     wig.init();
+
+    // Just return a value to define the module export.
+    // This example returns an object, but the module
+    // can return a function as the exported value.
+    return wig;
 }));
