@@ -10,7 +10,7 @@ var Selection = wig.Selection = Class.extend({
     },
 
     preserveSelection: function () {
-        var node  = this.getSelectedNode();
+        var node  = document.activeElement;
 
         this.start = node.selectionStart;
         this.end   = node.selectionEnd;
@@ -96,9 +96,5 @@ var Selection = wig.Selection = Class.extend({
             this.id = undefined;
             this.path = undefined;
         }
-    },
-
-    getSelectedNode: function () {
-        return document.activeElement;
     }
 });

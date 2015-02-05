@@ -5,6 +5,9 @@
     var HelloView = wig.View.extend({
         tagName: 'h1',
         className: 'HelloView',
+        defaults: {
+            name: 'somebody'
+        },
         template: 'Hello {{ name }}!'
     });
 

@@ -1,29 +1,16 @@
 var DOM = wig.DOM = Class.extend({
 
-    getElement: function (root, selector) {
-        root = this.selectNode(root);
-        return (selector ? root.querySelector(selector): root);
-    },
-
-    selectNode: function (element) {
-        if (typeof element === 'string') {
-            element = this.getElement(document.body, element);
-        }
-
-        return element;
-    },
-
     initNode: function (element, classSet, dataSet) {
         var classes = classSet,
-            i;
+            cl;
 
         if (Array.isArray(classSet)) {
             classes = classSet.join(' ');
         } else if (classSet && typeof classSet === 'object') {
             classes = [];
-            for (i in classSet) {
-                if (classSet.hasOwnProperty(i) && classSet[i]) {
-                    classes.push(i);
+            for (cl in classSet) {
+                if (classSet.hasOwnProperty(cl) && classSet[cl]) {
+                    classes.push(cl);
                 }
             }
             classes = classes.join(' ');

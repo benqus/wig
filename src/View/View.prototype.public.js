@@ -48,7 +48,7 @@ extend(View.prototype, {
         if (!selector) {
             return node;
         }
-        return wig.env.dom.getElement(node, selector);
+        return api.getElement(node, selector);
     },
 
     /**

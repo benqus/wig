@@ -1,0 +1,27 @@
+// user overrides to introduce backwards compatibility
+var api = wig.api = {
+
+    /**
+     * Method compiles a template with a context object.
+     * If selector is empty or not defined it will return the original node
+     * Introduce custom DOM query by override.
+     * @param   {Element} element
+     * @param   {string}  selector
+     * @returns {Element}
+     */
+    getElement: function (element, selector) {
+        return (selector ? element.querySelector(selector) : element);
+    },
+
+    /**
+     * Method compiles a template with a context object.
+     * Introduce custom template compilation by override.
+     * @param   {string} template
+     * @param   {object} context
+     * @returns {String}
+     */
+    compile: function (template, context) {
+        return wig.env.compiler.compile(template, context);
+    }
+
+};
