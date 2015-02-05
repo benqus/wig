@@ -48,10 +48,10 @@ extend(View.prototype, {
      * @param {string|number} childViewID
      */
     getView: function (childViewID) {
-        var children = this._children;
+        var children = wig.env.viewManager.getChildViews(this.getID());
         // if id is an array index instead of a child's ID
         if (typeof childViewID === 'number' && childViewID < children.length) {
-            childViewID = this._children[childViewID];
+            childViewID = children[childViewID];
         }
         // if id is not an absolute id
         if (children.indexOf(childViewID) === -1) {
@@ -66,13 +66,14 @@ extend(View.prototype, {
      */
     removeView: function (childViewID) {
         var childView = this.getView(childViewID),
+            children = wig.env.viewManager.getChildViews(this.getID()),
             index;
 
         if (childView) {
-            index = this._children.indexOf(childView.getID());
+            index = children.indexOf(childView.getID());
             if (index > -1) {
                 childView.destroy();
-                this._children.splice(index, 1);
+                children.splice(index, 1);
             }
         }
     },
@@ -118,7 +119,8 @@ extend(View.prototype, {
     createChildView: function (ViewClass, options) {
         var childView = new ViewClass(options);
         View.registerView(childView, this);
-        this._children.push(childView.getID());
+        wig.env.viewManager.getChildViews(this.getID())
+            .push(childView.getID());
         return childView;
     }
 });

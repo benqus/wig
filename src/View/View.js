@@ -9,19 +9,16 @@ var View = wig.View = Class.extend({
 
     constructor: function View(context) {
         context = (context || {});
+        // assign the ID and register the View
+        this._ID = (context.id || generateID('v'));
+        View.registerView(this);
 
-        this._ID           = (context.id || generateID('v'));
-        this._children     = [];
-
-        this.attached  = false;
-        this.css       = (context.css || '');
-        this.node      = (context.node || document.createElement(this.tagName));
-        this.callbacks = (context.callbacks || {});
-        this.context   = {};
+        this.css      = (context.css || '');
+        this.node     = (context.node || document.createElement(this.tagName));
+        this.context  = {};
+        this.attached = false;
 
         this.initializeWithContext(context);
-
-        View.registerView(this);
     }
 }, {
 
@@ -39,6 +36,7 @@ var View = wig.View = Class.extend({
         View.Registry.set(viewID, {
             contextRegistry: new Registry(),
             customEvents: {},
+            children: [],
             parent: (parentView && parentView.getID()),
             view: childView
         });

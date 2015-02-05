@@ -77,7 +77,8 @@ extend(View.prototype, {
      * Removes (destroys) the children.
      */
     empty: function () {
-        this._children.forEach(this.removeView, this);
+        wig.env.viewManager.getChildViews(this.getID())
+            .forEach(this.removeView, this);
     },
 
     /**

@@ -14,9 +14,10 @@ extend(View.prototype, {
 
     initialize: function () {
         var dataset = {},
-            classes = [this.className];
+            classes = [this.className],
+            id = this.getID();
         // data attributes
-        dataset[DATA_ATTRIBUTE] = this.getID();
+        dataset[DATA_ATTRIBUTE] = id;
         // add custom css
         if (this.css) {
             classes.push(this.css);
@@ -26,7 +27,8 @@ extend(View.prototype, {
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
-        this._children.forEach(this.initializeChild);
+        wig.env.viewManager.getChildViews(id)
+            .forEach(this.initializeChild);
     },
 
     cleanupContext: function (context) {
@@ -82,20 +84,21 @@ extend(View.prototype, {
         this._emptyAndPreserveChildContext();
         this.updateCSSClasses();
         this.render();
-        this._children.forEach(this.paintChildView, this);
+        wig.env.viewManager.getChildViews(this.getID())
+            .forEach(this.paintChildView, this);
     },
 
     notifyAttach: function () {
         this.attached = true;
         this.onAttach();
-        this._children.forEach(
+        wig.env.viewManager.getChildViews(this.getID()).forEach(
             wig.env.viewManager.notifyViewAboutAttach, wig.env.viewManager);
     },
 
     notifyDetach: function () {
         this.attached = false;
         this.onDetach();
-        this._children.forEach(
+        wig.env.viewManager.getChildViews(this.getID()).forEach(
             wig.env.viewManager.notifyViewAboutDetach, wig.env.viewManager);
     },
 
@@ -110,7 +113,8 @@ extend(View.prototype, {
             parentNode.removeChild(this.node);
         }
 
-        this._children.forEach(this.removeView, this);
+        wig.env.viewManager.getChildViews(this.getID())
+            .forEach(this.removeView, this);
 
         this.node.innerHTML = '';
         this.node = null;
@@ -129,11 +133,12 @@ extend(View.prototype, {
     },
 
     _emptyAndPreserveChildContext: function () {
+        var id = this.getID();
         // empty child context registry
-        View.Registry.get(this.getID())
+        View.Registry.get(id)
             .contextRegistry.empty();
 
-        this._children.forEach(this._serializeAndRemoveView, this);
-        this._children = [];
+        wig.env.viewManager.getChildViews(id)
+            .forEach(this._serializeAndRemoveView, this);
     }
 });

@@ -16,6 +16,11 @@ var ViewManager = wig.ViewManager = Class.extend({
         return (item && item.parent);
     },
 
+    getChildViews: function (id) {
+        var item = this.ViewRegistry.get(id);
+        return (item && item.children);
+    },
+
     getParentView: function (childView) {
         var childID = childView.getID(),
             parentID = this.getParent(childID);

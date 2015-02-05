@@ -613,6 +613,10 @@ var UIEventProxy = wig.UIEventProxy = Class.extend({
     }
 });
 
+var ViewHelper = wig.ViewHelper = Class.extend({
+
+});
+
 var ViewManager = wig.ViewManager = Class.extend({
 
     constructor: function (ViewRegistry, DOM, Selection) {
@@ -629,6 +633,11 @@ var ViewManager = wig.ViewManager = Class.extend({
     getParent: function (id) {
         var item = this.ViewRegistry.get(id);
         return (item && item.parent);
+    },
+
+    getChildViews: function (id) {
+        var item = this.ViewRegistry.get(id);
+        return (item && item.children);
     },
 
     getParentView: function (childView) {
@@ -798,19 +807,16 @@ var View = wig.View = Class.extend({
 
     constructor: function View(context) {
         context = (context || {});
+        // assign the ID and register the View
+        this._ID = (context.id || generateID('v'));
+        View.registerView(this);
 
-        this._ID           = (context.id || generateID('v'));
-        this._children     = [];
-
-        this.attached  = false;
-        this.css       = (context.css || '');
-        this.node      = (context.node || document.createElement(this.tagName));
-        this.callbacks = (context.callbacks || {});
-        this.context   = {};
+        this.css      = (context.css || '');
+        this.node     = (context.node || document.createElement(this.tagName));
+        this.context  = {};
+        this.attached = false;
 
         this.initializeWithContext(context);
-
-        View.registerView(this);
     }
 }, {
 
@@ -828,6 +834,7 @@ var View = wig.View = Class.extend({
         View.Registry.set(viewID, {
             contextRegistry: new Registry(),
             customEvents: {},
+            children: [],
             parent: (parentView && parentView.getID()),
             view: childView
         });
@@ -918,10 +925,10 @@ extend(View.prototype, {
      * @param {string|number} childViewID
      */
     getView: function (childViewID) {
-        var children = this._children;
+        var children = wig.env.viewManager.getChildViews(this.getID());
         // if id is an array index instead of a child's ID
         if (typeof childViewID === 'number' && childViewID < children.length) {
-            childViewID = this._children[childViewID];
+            childViewID = children[childViewID];
         }
         // if id is not an absolute id
         if (children.indexOf(childViewID) === -1) {
@@ -936,13 +943,14 @@ extend(View.prototype, {
      */
     removeView: function (childViewID) {
         var childView = this.getView(childViewID),
+            children = wig.env.viewManager.getChildViews(this.getID()),
             index;
 
         if (childView) {
-            index = this._children.indexOf(childView.getID());
+            index = children.indexOf(childView.getID());
             if (index > -1) {
                 childView.destroy();
-                this._children.splice(index, 1);
+                children.splice(index, 1);
             }
         }
     },
@@ -988,7 +996,8 @@ extend(View.prototype, {
     createChildView: function (ViewClass, options) {
         var childView = new ViewClass(options);
         View.registerView(childView, this);
-        this._children.push(childView.getID());
+        wig.env.viewManager.getChildViews(this.getID())
+            .push(childView.getID());
         return childView;
     }
 });
@@ -1106,9 +1115,10 @@ extend(View.prototype, {
 
     initialize: function () {
         var dataset = {},
-            classes = [this.className];
+            classes = [this.className],
+            id = this.getID();
         // data attributes
-        dataset[DATA_ATTRIBUTE] = this.getID();
+        dataset[DATA_ATTRIBUTE] = id;
         // add custom css
         if (this.css) {
             classes.push(this.css);
@@ -1118,7 +1128,8 @@ extend(View.prototype, {
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
-        this._children.forEach(this.initializeChild);
+        wig.env.viewManager.getChildViews(id)
+            .forEach(this.initializeChild);
     },
 
     cleanupContext: function (context) {
@@ -1174,20 +1185,21 @@ extend(View.prototype, {
         this._emptyAndPreserveChildContext();
         this.updateCSSClasses();
         this.render();
-        this._children.forEach(this.paintChildView, this);
+        wig.env.viewManager.getChildViews(this.getID())
+            .forEach(this.paintChildView, this);
     },
 
     notifyAttach: function () {
         this.attached = true;
         this.onAttach();
-        this._children.forEach(
+        wig.env.viewManager.getChildViews(this.getID()).forEach(
             wig.env.viewManager.notifyViewAboutAttach, wig.env.viewManager);
     },
 
     notifyDetach: function () {
         this.attached = false;
         this.onDetach();
-        this._children.forEach(
+        wig.env.viewManager.getChildViews(this.getID()).forEach(
             wig.env.viewManager.notifyViewAboutDetach, wig.env.viewManager);
     },
 
@@ -1202,7 +1214,8 @@ extend(View.prototype, {
             parentNode.removeChild(this.node);
         }
 
-        this._children.forEach(this.removeView, this);
+        wig.env.viewManager.getChildViews(this.getID())
+            .forEach(this.removeView, this);
 
         this.node.innerHTML = '';
         this.node = null;
@@ -1221,12 +1234,13 @@ extend(View.prototype, {
     },
 
     _emptyAndPreserveChildContext: function () {
+        var id = this.getID();
         // empty child context registry
-        View.Registry.get(this.getID())
+        View.Registry.get(id)
             .contextRegistry.empty();
 
-        this._children.forEach(this._serializeAndRemoveView, this);
-        this._children = [];
+        wig.env.viewManager.getChildViews(id)
+            .forEach(this._serializeAndRemoveView, this);
     }
 });
 
@@ -1404,7 +1418,8 @@ extend(View.prototype, {
      * Removes (destroys) the children.
      */
     empty: function () {
-        this._children.forEach(this.removeView, this);
+        wig.env.viewManager.getChildViews(this.getID())
+            .forEach(this.removeView, this);
     },
 
     /**
