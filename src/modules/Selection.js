@@ -10,7 +10,7 @@ var Selection = wig.Selection = Class.extend({
     },
 
     preserveSelection: function () {
-        var node  = document.activeElement;
+        var node = wig.api.getFocusedElement();
 
         this.start = node.selectionStart;
         this.end   = node.selectionEnd;
@@ -29,7 +29,7 @@ var Selection = wig.Selection = Class.extend({
     },
 
     preserveSelectionInView: function (updatingView) {
-        var node = document.activeElement,
+        var node = wig.api.getFocusedElement(),
             focusedViewID = this.DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;

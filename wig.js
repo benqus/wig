@@ -16,7 +16,10 @@
 }(window, function (wig) {
     "use strict";
 
-// user overrides to introduce backwards compatibility
+/*
+ * @namespace
+ * user overrides to introduce backwards compatibility or custom templating
+ */
 var api = wig.api = {
 
     /**
@@ -32,6 +35,15 @@ var api = wig.api = {
     },
 
     /**
+     * Method returns the currently active Element in the DOM.
+     * Override method for older browser support.
+     * @returns {Element}
+     */
+    getFocusedElement: function () {
+        return document.activeElement;
+    },
+
+    /**
      * Method compiles a template with a context object.
      * Introduce custom template compilation by override.
      * @param   {string} template
@@ -41,7 +53,6 @@ var api = wig.api = {
     compile: function (template, context) {
         return wig.env.compiler.compile(template, context);
     }
-
 };
 
 // wig internal environment
@@ -437,7 +448,7 @@ var Selection = wig.Selection = Class.extend({
     },
 
     preserveSelection: function () {
-        var node  = document.activeElement;
+        var node = wig.api.getFocusedElement();
 
         this.start = node.selectionStart;
         this.end   = node.selectionEnd;
@@ -456,7 +467,7 @@ var Selection = wig.Selection = Class.extend({
     },
 
     preserveSelectionInView: function (updatingView) {
-        var node = document.activeElement,
+        var node = wig.api.getFocusedElement(),
             focusedViewID = this.DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;
