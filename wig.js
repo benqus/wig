@@ -613,10 +613,6 @@ var UIEventProxy = wig.UIEventProxy = Class.extend({
     }
 });
 
-var ViewHelper = wig.ViewHelper = Class.extend({
-
-});
-
 var ViewManager = wig.ViewManager = Class.extend({
 
     constructor: function (ViewRegistry, DOM, Selection) {
@@ -1234,13 +1230,16 @@ extend(View.prototype, {
     },
 
     _emptyAndPreserveChildContext: function () {
-        var id = this.getID();
+        var id = this.getID(),
+            children = wig.env.viewManager.getChildViews(id);
         // empty child context registry
         View.Registry.get(id)
             .contextRegistry.empty();
 
-        wig.env.viewManager.getChildViews(id)
-            .forEach(this._serializeAndRemoveView, this);
+        while (children.length > 0) {
+            // method below will shift children out form the array
+            this._serializeAndRemoveView(children[0]);
+        }
     }
 });
 
