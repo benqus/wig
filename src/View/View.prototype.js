@@ -27,8 +27,7 @@ extend(View.prototype, {
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
-        wig.env.viewManager.getChildViews(id)
-            .forEach(this.initializeChild);
+        wig.env.viewHelper.initializeChildren(this);
     },
 
     cleanupContext: function (context) {
@@ -84,8 +83,7 @@ extend(View.prototype, {
         this._emptyAndPreserveChildContext();
         this.updateCSSClasses();
         this.render();
-        wig.env.viewManager.getChildViews(this.getID())
-            .forEach(this.paintChildView, this);
+        wig.env.viewHelper.paintChildren(this);
     },
 
     notifyAttach: function () {

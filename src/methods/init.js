@@ -8,6 +8,8 @@ wig.init = function () {
     wig.env.viewManager = new ViewManager(
         View.Registry, wig.env.dom, wig.env.selection);
 
+    wig.env.viewHelper = new ViewHelper(wig.env.viewManager);
+
     wig.env.uiEventProxy = new UIEventProxy(
         wig.env.dom, wig.env.viewManager);
 };

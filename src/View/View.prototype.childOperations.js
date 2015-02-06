@@ -3,10 +3,6 @@
  */
 extend(View.prototype, {
 
-    // ////// //
-    // PUBLIC //
-    // ////// //
-
     /**
      * Creates and adds the child view specified by the child view's _ID attribute.
      * @param   {Function} [ViewClass]    - child View type
@@ -34,10 +30,11 @@ extend(View.prototype, {
         newChildContext = extend({}, oldChildContext, childOptions);
         // create child view
         options = extend(newChildContext, { id: childID });
-        childView = this.createChildView(ViewClass, options);
+        childView = wig.env.viewHelper.createChildView(
+            this, ViewClass, options);
         // render child view if parent (this) is attached
         if (this.attached) {
-            this.paintChildView(childID);
+            wig.env.viewHelper.paintChildView(this, childID);
         }
 
         return childView;
@@ -76,51 +73,5 @@ extend(View.prototype, {
                 children.splice(index, 1);
             }
         }
-    },
-
-    // ///////// //
-    // PROTECTED //
-    // ///////// //
-
-    /**
-     * @param childViewID
-     */
-    initializeChild: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            childView.initialize();
-        }
-    },
-
-    /**
-     * @param childViewID
-     */
-    updateChildView: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            childView.update();
-        }
-    },
-
-    /**
-     * @param childViewID
-     */
-    paintChildView: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            wig.env.viewManager.updateView(childView);
-        }
-    },
-
-    /**
-     * @param {View}   ViewClass
-     * @param {object} options
-     */
-    createChildView: function (ViewClass, options) {
-        var childView = new ViewClass(options);
-        View.registerView(childView, this);
-        wig.env.viewManager.getChildViews(this.getID())
-            .push(childView.getID());
-        return childView;
     }
 });

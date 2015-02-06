@@ -613,6 +613,71 @@ var UIEventProxy = wig.UIEventProxy = Class.extend({
     }
 });
 
+// helper module to provide privacy on the public View interface
+var ViewHelper = wig.ViewHelper = Class.extend({
+
+    constructor: function (viewManager) {
+        Class.apply(this, arguments);
+        this.ViewManager = viewManager;
+    },
+
+    /**
+     * @param {View}     view
+     * @param {Function} ViewClass
+     * @param {object}   options
+     */
+    createChildView: function (view, ViewClass, options) {
+        var childView = new ViewClass(options);
+        View.registerView(childView, view);
+        wig.env.viewManager.getChildViews(view.getID())
+            .push(childView.getID());
+        return childView;
+    },
+
+    /**
+     * @param {View} view
+     */
+    initializeChildren: function (view) {
+        var children = this.ViewManager.getChildViews(view.getID()),
+            length = children.length,
+            i = 0,
+            childView;
+
+        while (i < length) {
+            childView = this.ViewManager.getView(children[i]);
+            childView.initialize();
+            i += 1;
+        }
+    },
+
+    /**
+     * @param {View}   view
+     */
+    paintChildren: function (view) {
+        var children = wig.env.viewManager.getChildViews(view.getID()),
+            length = children.length,
+            i = 0,
+            childView;
+
+        while (i < length) {
+            childView = this.ViewManager.getView(children[i]);
+            this.ViewManager.updateView(childView);
+            i += 1;
+        }
+    },
+
+    /**
+     * @param {View}   view
+     * @param {string} childViewID
+     */
+    paintChildView: function (view, childViewID) {
+        var childView = view.getView(childViewID);
+        if (childView) {
+            this.ViewManager.updateView(childView);
+        }
+    }
+});
+
 var ViewManager = wig.ViewManager = Class.extend({
 
     constructor: function (ViewRegistry, DOM, Selection) {
@@ -771,6 +836,8 @@ wig.init = function () {
     wig.env.viewManager = new ViewManager(
         View.Registry, wig.env.dom, wig.env.selection);
 
+    wig.env.viewHelper = new ViewHelper(wig.env.viewManager);
+
     wig.env.uiEventProxy = new UIEventProxy(
         wig.env.dom, wig.env.viewManager);
 };
@@ -876,10 +943,6 @@ View.add = function (options, parentView) {
  */
 extend(View.prototype, {
 
-    // ////// //
-    // PUBLIC //
-    // ////// //
-
     /**
      * Creates and adds the child view specified by the child view's _ID attribute.
      * @param   {Function} [ViewClass]    - child View type
@@ -907,10 +970,11 @@ extend(View.prototype, {
         newChildContext = extend({}, oldChildContext, childOptions);
         // create child view
         options = extend(newChildContext, { id: childID });
-        childView = this.createChildView(ViewClass, options);
+        childView = wig.env.viewHelper.createChildView(
+            this, ViewClass, options);
         // render child view if parent (this) is attached
         if (this.attached) {
-            this.paintChildView(childID);
+            wig.env.viewHelper.paintChildView(this, childID);
         }
 
         return childView;
@@ -949,52 +1013,6 @@ extend(View.prototype, {
                 children.splice(index, 1);
             }
         }
-    },
-
-    // ///////// //
-    // PROTECTED //
-    // ///////// //
-
-    /**
-     * @param childViewID
-     */
-    initializeChild: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            childView.initialize();
-        }
-    },
-
-    /**
-     * @param childViewID
-     */
-    updateChildView: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            childView.update();
-        }
-    },
-
-    /**
-     * @param childViewID
-     */
-    paintChildView: function (childViewID) {
-        var childView = this.getView(childViewID);
-        if (childView) {
-            wig.env.viewManager.updateView(childView);
-        }
-    },
-
-    /**
-     * @param {View}   ViewClass
-     * @param {object} options
-     */
-    createChildView: function (ViewClass, options) {
-        var childView = new ViewClass(options);
-        View.registerView(childView, this);
-        wig.env.viewManager.getChildViews(this.getID())
-            .push(childView.getID());
-        return childView;
     }
 });
 
@@ -1124,8 +1142,7 @@ extend(View.prototype, {
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
-        wig.env.viewManager.getChildViews(id)
-            .forEach(this.initializeChild);
+        wig.env.viewHelper.initializeChildren(this);
     },
 
     cleanupContext: function (context) {
@@ -1181,8 +1198,7 @@ extend(View.prototype, {
         this._emptyAndPreserveChildContext();
         this.updateCSSClasses();
         this.render();
-        wig.env.viewManager.getChildViews(this.getID())
-            .forEach(this.paintChildView, this);
+        wig.env.viewHelper.paintChildren(this);
     },
 
     notifyAttach: function () {
