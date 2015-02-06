@@ -61,7 +61,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             rootNode = childNode.parentNode,
             childNodeIndex;
 
-        view.undelegateAll();
+        env.viewHelper.undelegateAll(view);
 
         this.Selection.preserveSelectionInView(view);
 

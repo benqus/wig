@@ -22,13 +22,11 @@ describe('UIEventProxy', function () {
                 target: target
             };
 
-        view.hasEvent.returns(true);
 
         wig.env.uiEventProxy.listener(event);
 
         assert.ok(find.calledOnce);
         assert.ok(find.calledWithExactly(target, 'data-' + wig.DATA_ATTRIBUTE));
-        assert.ok(view.fireDOMEvent.calledOnce);
 
         // restore and reset stubs
         find.restore();

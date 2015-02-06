@@ -44,8 +44,7 @@ module.exports = function (grunt) {
 
                     './src/methods/**/*.js',
 
-                    './src/View/View.js',
-                    './src/View/**/*.js',
+                    './src/View.js',
 
                     './src/**/*.js',
 

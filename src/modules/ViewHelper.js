@@ -93,7 +93,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
         var node = view.getNode(),
             parentNode = node.parentNode;
         // remove custom events and notify children about removal
-        view.undelegateAll();
+        this.undelegateAll(view);
         this.notifyDetach(view);
 
         if (parentNode) {
@@ -212,5 +212,58 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      */
     serialize: function (view) {
         return extend({}, view.defaults, view.context);
+    },
+
+    /**
+     * Used by the UIEventProxy to execute the event handler on the view.
+     * @param {View}  view
+     * @param {Event} event
+     */
+    fireDOMEvent: function (view, event) {
+        var listener = view.events[event.type];
+        if (typeof listener !== 'function') {
+            listener = view[listener];
+        }
+        if (listener) {
+            return listener.call(view, event);
+        }
+    },
+
+    /**
+     * Used by the UIEventProxy to determine whether the view
+     * has an event listener for the specified event type.
+     * @param {View}  view
+     * @param {Event} event
+     */
+    hasEvent: function (view, event) {
+        return !!(view.events && view.events[event.type]);
+    },
+
+    /**
+     * @param {Registry} view
+     * @param {string}   type
+     */
+    undelegateType: function (view, type) {
+        var viewID = this.getID(),
+            customEvents = View.Registry.get(viewID).customEvents,
+            selectors = customEvents[type],
+            l = selectors.length,
+            node;
+
+        while (l--) {
+            node = this.find(selectors[l]);
+            env.uiEventProxy.removeListener(node, type);
+        }
+    },
+
+    /**
+     * Undelegate all non-bubbling events registered for the View
+     */
+    undelegateAll: function (view) {
+        var viewID = view.getID(),
+            customEvents = View.Registry.get(viewID).customEvents;
+
+        Object.keys(customEvents).forEach(
+            this.undelegateType.bind(this, customEvents));
     }
 });

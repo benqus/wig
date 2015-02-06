@@ -11,8 +11,8 @@ var UIEventProxy = wig.UIEventProxy = Class.extend({
     findFirstViewAndFireEvent: function (event, view) {
         do {
             // find the first view that is listening to the same type of event
-            if (view.hasEvent(event)) {
-                view.fireDOMEvent(event);
+            if (env.viewHelper.hasEvent(view, event)) {
+                env.viewHelper.fireDOMEvent(view, event);
                 return;
             }
 

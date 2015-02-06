@@ -212,6 +212,40 @@ var View = wig.View = Class.extend({
         }
     },
 
+    // /// ////// //
+    // DOM Events //
+    // /// ////// //
+
+    /**
+     * Delegate the UIEventProxy's listener to listen to
+     * non-bubbling events on a node instead of the document
+     * @param {string} type
+     * @param {string} selector
+     */
+    delegate: function (type, selector) {
+        var viewID = this.getID(),
+            customEvents = View.Registry.get(viewID).customEvents,
+            node;
+
+        if (!customEvents[type]) {
+            customEvents[type] = [];
+        }
+
+        if (customEvents[type].indexOf(selector) === -1) {
+            node = this.find(selector);
+            env.uiEventProxy.addListener(node, type);
+            customEvents[type].push(selector || '');
+        }
+    },
+
+    /**
+     * UIEventProxy listening to the specified event type.
+     * @param {string} type
+     */
+    listenFor: function (type) {
+        env.uiEventProxy.startListenTo(type);
+    },
+
     // ///////// //
     // Overrides //
     // ///////// //

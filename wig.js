@@ -567,8 +567,8 @@ var UIEventProxy = wig.UIEventProxy = Class.extend({
     findFirstViewAndFireEvent: function (event, view) {
         do {
             // find the first view that is listening to the same type of event
-            if (view.hasEvent(event)) {
-                view.fireDOMEvent(event);
+            if (env.viewHelper.hasEvent(view, event)) {
+                env.viewHelper.fireDOMEvent(view, event);
                 return;
             }
 
@@ -708,7 +708,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
         var node = view.getNode(),
             parentNode = node.parentNode;
         // remove custom events and notify children about removal
-        view.undelegateAll();
+        this.undelegateAll(view);
         this.notifyDetach(view);
 
         if (parentNode) {
@@ -827,6 +827,59 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      */
     serialize: function (view) {
         return extend({}, view.defaults, view.context);
+    },
+
+    /**
+     * Used by the UIEventProxy to execute the event handler on the view.
+     * @param {View}  view
+     * @param {Event} event
+     */
+    fireDOMEvent: function (view, event) {
+        var listener = view.events[event.type];
+        if (typeof listener !== 'function') {
+            listener = view[listener];
+        }
+        if (listener) {
+            return listener.call(view, event);
+        }
+    },
+
+    /**
+     * Used by the UIEventProxy to determine whether the view
+     * has an event listener for the specified event type.
+     * @param {View}  view
+     * @param {Event} event
+     */
+    hasEvent: function (view, event) {
+        return !!(view.events && view.events[event.type]);
+    },
+
+    /**
+     * @param {Registry} view
+     * @param {string}   type
+     */
+    undelegateType: function (view, type) {
+        var viewID = this.getID(),
+            customEvents = View.Registry.get(viewID).customEvents,
+            selectors = customEvents[type],
+            l = selectors.length,
+            node;
+
+        while (l--) {
+            node = this.find(selectors[l]);
+            env.uiEventProxy.removeListener(node, type);
+        }
+    },
+
+    /**
+     * Undelegate all non-bubbling events registered for the View
+     */
+    undelegateAll: function (view) {
+        var viewID = view.getID(),
+            customEvents = View.Registry.get(viewID).customEvents;
+
+        Object.keys(customEvents).forEach(
+            this.undelegateType.bind(this, customEvents));
     }
 });
 
@@ -893,7 +946,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             rootNode = childNode.parentNode,
             childNodeIndex;
 
-        view.undelegateAll();
+        env.viewHelper.undelegateAll(view);
 
         this.Selection.preserveSelectionInView(view);
 
@@ -1232,6 +1285,40 @@ var View = wig.View = Class.extend({
         }
     },
 
+    // /// ////// //
+    // DOM Events //
+    // /// ////// //
+
+    /**
+     * Delegate the UIEventProxy's listener to listen to
+     * non-bubbling events on a node instead of the document
+     * @param {string} type
+     * @param {string} selector
+     */
+    delegate: function (type, selector) {
+        var viewID = this.getID(),
+            customEvents = View.Registry.get(viewID).customEvents,
+            node;
+
+        if (!customEvents[type]) {
+            customEvents[type] = [];
+        }
+
+        if (customEvents[type].indexOf(selector) === -1) {
+            node = this.find(selector);
+            env.uiEventProxy.addListener(node, type);
+            customEvents[type].push(selector || '');
+        }
+    },
+
+    /**
+     * UIEventProxy listening to the specified event type.
+     * @param {string} type
+     */
+    listenFor: function (type) {
+        env.uiEventProxy.startListenTo(type);
+    },
+
     // ///////// //
     // Overrides //
     // ///////// //
@@ -1309,103 +1396,6 @@ View.add = function (options, parentView) {
         parentView, 'Parent View cannot be undefined!');
     return parentView.addView(this, options);
 };
-
-/*
- * DOM event related methods for the View
- */
-extend(View.prototype, {
-
-    /**
-     * @private
-     * @param {Registry} customEvents
-     * @param {string}   type
-     */
-    _undelegateType: function (customEvents, type) {
-        var selectors = customEvents[type],
-            l = selectors.length,
-            node;
-
-        while (l--) {
-            node = this.find(selectors[l]);
-            env.uiEventProxy.removeListener(node, type);
-        }
-    },
-
-    /**
-     * Delegate the UIEventProxy's listener to listen to
-     * non-bubbling events on a node instead of the document
-     * @param {string} type
-     * @param {string} selector
-     */
-    delegate: function (type, selector) {
-        var viewID = this.getID(),
-            customEvents = View.Registry.get(viewID).customEvents,
-            node;
-
-        if (!customEvents[type]) {
-            customEvents[type] = [];
-        }
-
-        if (customEvents[type].indexOf(selector) === -1) {
-            node = this.find(selector);
-            env.uiEventProxy.addListener(node, type);
-            customEvents[type].push(selector || '');
-        }
-    },
-
-    /**
-     * Undelegate non-bubbling event registered for the View
-     * @param {string} type
-     */
-    undelegate: function (type) {
-        var viewID = this.getID(),
-            customEvents = View.Registry.get(viewID).customEvents;
-
-        this._undelegateType(customEvents, type);
-    },
-
-    /**
-     * Undelegate all non-bubbling events registered for the View
-     */
-    undelegateAll: function () {
-        var viewID = this.getID(),
-            customEvents = View.Registry.get(viewID).customEvents;
-
-        Object.keys(customEvents).forEach(
-            this._undelegateType.bind(this, customEvents));
-    },
-
-    /**
-     * UIEventProxy listening to the specified event type.
-     * @param {string} type
-     */
-    listenFor: function (type) {
-        env.uiEventProxy.startListenTo(type);
-    },
-
-    /**
-     * Used by the UIEventProxy to execute the event handler on the view.
-     * @param {Event} event
-     */
-    fireDOMEvent: function (event) {
-        var listener = this.events[event.type];
-        if (typeof listener !== 'function') {
-            listener = this[listener];
-        }
-        if (listener) {
-            return listener.call(this, event);
-        }
-    },
-
-    /**
-     * Used by the UIEventProxy to determine whether the view
-     * has an event listener for the specified event type.
-     * @param {Event} event
-     */
-    hasEvent: function (event) {
-        return !!(this.events && this.events[event.type]);
-    }
-});
 
     wig.init();
 
