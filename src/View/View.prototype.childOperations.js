@@ -69,7 +69,7 @@ extend(View.prototype, {
         if (childView) {
             index = children.indexOf(childView.getID());
             if (index > -1) {
-                childView.destroy();
+                env.viewHelper.destroy(childView);
                 children.splice(index, 1);
             }
         }

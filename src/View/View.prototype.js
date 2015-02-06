@@ -54,20 +54,6 @@ extend(View.prototype, {
         }
     },
 
-    updateCSSClasses: function () {
-        var classes = [this.className],
-            customCSS = this.getCSS();
-
-        if (this.css) {
-            classes.push(this.css);
-        }
-        if(customCSS) {
-            classes.push(customCSS);
-        }
-
-        wig.env.dom.initNode(this.getNode(), classes);
-    },
-
     getSelectorForChild: function (id) {
         var childView = this.getView(id),
             childID = childView.getID().split('.').pop();
@@ -81,43 +67,9 @@ extend(View.prototype, {
         node.innerHTML = (html || '');
 
         this._emptyAndPreserveChildContext();
-        this.updateCSSClasses();
         this.render();
+        wig.env.viewHelper.updateCSSClasses(this);
         wig.env.viewHelper.paintChildren(this);
-    },
-
-    notifyAttach: function () {
-        this.attached = true;
-        this.onAttach();
-        wig.env.viewManager.getChildViews(this.getID()).forEach(
-            wig.env.viewManager.notifyViewAboutAttach, wig.env.viewManager);
-    },
-
-    notifyDetach: function () {
-        this.attached = false;
-        this.onDetach();
-        wig.env.viewManager.getChildViews(this.getID()).forEach(
-            wig.env.viewManager.notifyViewAboutDetach, wig.env.viewManager);
-    },
-
-    // Method is invoked by remove
-    destroy: function () {
-        var parentNode = this.node.parentNode;
-        // remove custom events and notify children about removal
-        this.undelegateAll();
-        this.notifyDetach();
-
-        if (parentNode) {
-            parentNode.removeChild(this.node);
-        }
-
-        wig.env.viewManager.getChildViews(this.getID())
-            .forEach(this.removeView, this);
-
-        this.node.innerHTML = '';
-        this.node = null;
-
-        View.removeView(this);
     },
 
     _serializeAndRemoveView: function (childViewID) {

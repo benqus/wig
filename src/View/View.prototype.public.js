@@ -56,10 +56,10 @@ extend(View.prototype, {
      * @param {object} [context] - context updates
      */
     update: function (context) {
-        this.notifyDetach();
+        env.viewHelper.notifyDetach(this);
         this.set(context);
-        wig.env.viewManager.updateView(this);
-        this.notifyAttach();
+        env.viewManager.updateView(this);
+        env.viewHelper.notifyAttach(this);
     },
 
     /**

@@ -83,12 +83,12 @@ var ViewManager = wig.ViewManager = Class.extend({
 
     notifyViewAboutAttach: function (viewID) {
         var view = this.getView(viewID);
-        view.notifyAttach();
+        env.viewHelper.notifyAttach(view);
     },
 
     notifyViewAboutDetach: function (viewID) {
         var view = this.getView(viewID);
-        view.notifyDetach();
+        env.viewHelper.notifyDetach(view);
     },
 
     removeViewFromParent: function (view) {
@@ -98,7 +98,7 @@ var ViewManager = wig.ViewManager = Class.extend({
         if (parentView) {
             parentView.removeView(childViewID);
         } else {
-            view.destroy();
+            env.viewHelper.destroy(view);
         }
     },
 
