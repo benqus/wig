@@ -1,15 +1,15 @@
 // initialize wig
 wig.init = function () {
-    wig.env.dom = new DOM();
-    wig.env.insurer = new Insurer();
-    wig.env.compiler = new Compiler();
-    wig.env.selection = new Selection(wig.env.dom);
+    env.dom = new DOM();
+    env.insurer = new Insurer();
+    env.compiler = new Compiler();
+    env.selection = new Selection(env.dom);
 
-    wig.env.viewManager = new ViewManager(
-        View.Registry, wig.env.dom, wig.env.selection);
+    env.viewManager = new ViewManager(
+        View.Registry, env.dom, env.selection);
 
-    wig.env.viewHelper = new ViewHelper(wig.env.viewManager);
+    env.viewHelper = new ViewHelper(env.viewManager);
 
-    wig.env.uiEventProxy = new UIEventProxy(
-        wig.env.dom, wig.env.viewManager);
+    env.uiEventProxy = new UIEventProxy(
+        env.dom, env.viewManager);
 };

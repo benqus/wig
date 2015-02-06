@@ -33,6 +33,6 @@ var api = wig.api = {
      * @returns {String}
      */
     compile: function (template, context) {
-        return wig.env.compiler.compile(template, context);
+        return env.compiler.compile(template, context);
     }
 };

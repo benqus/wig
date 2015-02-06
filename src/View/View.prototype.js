@@ -23,11 +23,11 @@ extend(View.prototype, {
             classes.push(this.css);
         }
         // assign classes and data context
-        wig.env.dom.initNode(this.getNode(), classes, dataset);
+        env.dom.initNode(this.getNode(), classes, dataset);
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
-        wig.env.viewHelper.initializeChildren(this);
+        env.viewHelper.initializeChildren(this);
     },
 
     cleanupContext: function (context) {
@@ -46,7 +46,7 @@ extend(View.prototype, {
 
         while (l--) {
             prop = props[l];
-            wig.env.insurer.is.defined(
+            env.insurer.is.defined(
                 this[prop], '[' + prop + '] is already defined on the View instance!');
 
             this[prop] = context[prop];
@@ -68,8 +68,8 @@ extend(View.prototype, {
 
         this._emptyAndPreserveChildContext();
         this.render();
-        wig.env.viewHelper.updateCSSClasses(this);
-        wig.env.viewHelper.paintChildren(this);
+        env.viewHelper.updateCSSClasses(this);
+        env.viewHelper.paintChildren(this);
     },
 
     _serializeAndRemoveView: function (childViewID) {
@@ -84,7 +84,7 @@ extend(View.prototype, {
 
     _emptyAndPreserveChildContext: function () {
         var id = this.getID(),
-            children = wig.env.viewManager.getChildViews(id);
+            children = env.viewManager.getChildViews(id);
         // empty child context registry
         View.Registry.get(id)
             .contextRegistry.empty();

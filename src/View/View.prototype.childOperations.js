@@ -30,11 +30,11 @@ extend(View.prototype, {
         newChildContext = extend({}, oldChildContext, childOptions);
         // create child view
         options = extend(newChildContext, { id: childID });
-        childView = wig.env.viewHelper.createChildView(
+        childView = env.viewHelper.createChildView(
             this, ViewClass, options);
         // render child view if parent (this) is attached
         if (this.attached) {
-            wig.env.viewHelper.paintChildView(this, childID);
+            env.viewHelper.paintChildView(this, childID);
         }
 
         return childView;
@@ -45,7 +45,7 @@ extend(View.prototype, {
      * @param {string|number} childViewID
      */
     getView: function (childViewID) {
-        var children = wig.env.viewManager.getChildViews(this.getID());
+        var children = env.viewManager.getChildViews(this.getID());
         // if id is an array index instead of a child's ID
         if (typeof childViewID === 'number' && childViewID < children.length) {
             childViewID = children[childViewID];
@@ -54,7 +54,7 @@ extend(View.prototype, {
         if (children.indexOf(childViewID) === -1) {
             childViewID = this.getID() + '.' + childViewID;
         }
-        return wig.env.viewManager.getView(childViewID);
+        return env.viewManager.getView(childViewID);
     },
 
     /**
@@ -63,7 +63,7 @@ extend(View.prototype, {
      */
     removeView: function (childViewID) {
         var childView = this.getView(childViewID),
-            children = wig.env.viewManager.getChildViews(this.getID()),
+            children = env.viewManager.getChildViews(this.getID()),
             index;
 
         if (childView) {

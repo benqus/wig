@@ -15,7 +15,7 @@ extend(View.prototype, {
 
         while (l--) {
             node = this.find(selectors[l]);
-            wig.env.uiEventProxy.removeListener(node, type);
+            env.uiEventProxy.removeListener(node, type);
         }
     },
 
@@ -36,7 +36,7 @@ extend(View.prototype, {
 
         if (customEvents[type].indexOf(selector) === -1) {
             node = this.find(selector);
-            wig.env.uiEventProxy.addListener(node, type);
+            env.uiEventProxy.addListener(node, type);
             customEvents[type].push(selector || '');
         }
     },
@@ -68,7 +68,7 @@ extend(View.prototype, {
      * @param {string} type
      */
     listenFor: function (type) {
-        wig.env.uiEventProxy.startListenTo(type);
+        env.uiEventProxy.startListenTo(type);
     },
 
     /**

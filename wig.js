@@ -69,7 +69,7 @@ var api = wig.api = {
      * @returns {String}
      */
     compile: function (template, context) {
-        return wig.env.compiler.compile(template, context);
+        return env.compiler.compile(template, context);
     }
 };
 
@@ -688,7 +688,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
             classes.push(customCSS);
         }
 
-        wig.env.dom.initNode(view.getNode(), classes);
+        env.dom.initNode(view.getNode(), classes);
     },
 
     // Method is invoked by remove
@@ -884,18 +884,18 @@ wig.generateID = generateID;
 
 // initialize wig
 wig.init = function () {
-    wig.env.dom = new DOM();
-    wig.env.insurer = new Insurer();
-    wig.env.compiler = new Compiler();
-    wig.env.selection = new Selection(wig.env.dom);
+    env.dom = new DOM();
+    env.insurer = new Insurer();
+    env.compiler = new Compiler();
+    env.selection = new Selection(env.dom);
 
-    wig.env.viewManager = new ViewManager(
-        View.Registry, wig.env.dom, wig.env.selection);
+    env.viewManager = new ViewManager(
+        View.Registry, env.dom, env.selection);
 
-    wig.env.viewHelper = new ViewHelper(wig.env.viewManager);
+    env.viewHelper = new ViewHelper(env.viewManager);
 
-    wig.env.uiEventProxy = new UIEventProxy(
-        wig.env.dom, wig.env.viewManager);
+    env.uiEventProxy = new UIEventProxy(
+        env.dom, env.viewManager);
 };
 
 /**
@@ -989,7 +989,7 @@ View.extend = function (proto, statik) {
 };
 
 View.add = function (options, parentView) {
-    wig.env.insurer.exists.object(
+    env.insurer.exists.object(
         parentView, 'Parent View cannot be undefined!');
     return parentView.addView(this, options);
 };
@@ -1026,11 +1026,11 @@ extend(View.prototype, {
         newChildContext = extend({}, oldChildContext, childOptions);
         // create child view
         options = extend(newChildContext, { id: childID });
-        childView = wig.env.viewHelper.createChildView(
+        childView = env.viewHelper.createChildView(
             this, ViewClass, options);
         // render child view if parent (this) is attached
         if (this.attached) {
-            wig.env.viewHelper.paintChildView(this, childID);
+            env.viewHelper.paintChildView(this, childID);
         }
 
         return childView;
@@ -1041,7 +1041,7 @@ extend(View.prototype, {
      * @param {string|number} childViewID
      */
     getView: function (childViewID) {
-        var children = wig.env.viewManager.getChildViews(this.getID());
+        var children = env.viewManager.getChildViews(this.getID());
         // if id is an array index instead of a child's ID
         if (typeof childViewID === 'number' && childViewID < children.length) {
             childViewID = children[childViewID];
@@ -1050,7 +1050,7 @@ extend(View.prototype, {
         if (children.indexOf(childViewID) === -1) {
             childViewID = this.getID() + '.' + childViewID;
         }
-        return wig.env.viewManager.getView(childViewID);
+        return env.viewManager.getView(childViewID);
     },
 
     /**
@@ -1059,7 +1059,7 @@ extend(View.prototype, {
      */
     removeView: function (childViewID) {
         var childView = this.getView(childViewID),
-            children = wig.env.viewManager.getChildViews(this.getID()),
+            children = env.viewManager.getChildViews(this.getID()),
             index;
 
         if (childView) {
@@ -1089,7 +1089,7 @@ extend(View.prototype, {
 
         while (l--) {
             node = this.find(selectors[l]);
-            wig.env.uiEventProxy.removeListener(node, type);
+            env.uiEventProxy.removeListener(node, type);
         }
     },
 
@@ -1110,7 +1110,7 @@ extend(View.prototype, {
 
         if (customEvents[type].indexOf(selector) === -1) {
             node = this.find(selector);
-            wig.env.uiEventProxy.addListener(node, type);
+            env.uiEventProxy.addListener(node, type);
             customEvents[type].push(selector || '');
         }
     },
@@ -1142,7 +1142,7 @@ extend(View.prototype, {
      * @param {string} type
      */
     listenFor: function (type) {
-        wig.env.uiEventProxy.startListenTo(type);
+        env.uiEventProxy.startListenTo(type);
     },
 
     /**
@@ -1194,11 +1194,11 @@ extend(View.prototype, {
             classes.push(this.css);
         }
         // assign classes and data context
-        wig.env.dom.initNode(this.getNode(), classes, dataset);
+        env.dom.initNode(this.getNode(), classes, dataset);
         // apply event listeners
         Object.keys(this.events).forEach(this.listenFor, this);
         // initialize children
-        wig.env.viewHelper.initializeChildren(this);
+        env.viewHelper.initializeChildren(this);
     },
 
     cleanupContext: function (context) {
@@ -1217,7 +1217,7 @@ extend(View.prototype, {
 
         while (l--) {
             prop = props[l];
-            wig.env.insurer.is.defined(
+            env.insurer.is.defined(
                 this[prop], '[' + prop + '] is already defined on the View instance!');
 
             this[prop] = context[prop];
@@ -1239,8 +1239,8 @@ extend(View.prototype, {
 
         this._emptyAndPreserveChildContext();
         this.render();
-        wig.env.viewHelper.updateCSSClasses(this);
-        wig.env.viewHelper.paintChildren(this);
+        env.viewHelper.updateCSSClasses(this);
+        env.viewHelper.paintChildren(this);
     },
 
     _serializeAndRemoveView: function (childViewID) {
@@ -1255,7 +1255,7 @@ extend(View.prototype, {
 
     _emptyAndPreserveChildContext: function () {
         var id = this.getID(),
-            children = wig.env.viewManager.getChildViews(id);
+            children = env.viewManager.getChildViews(id);
         // empty child context registry
         View.Registry.get(id)
             .contextRegistry.empty();
@@ -1441,7 +1441,7 @@ extend(View.prototype, {
      * Removes (destroys) the children.
      */
     empty: function () {
-        wig.env.viewManager.getChildViews(this.getID())
+        env.viewManager.getChildViews(this.getID())
             .forEach(this.removeView, this);
     },
 
@@ -1449,7 +1449,7 @@ extend(View.prototype, {
      * Removes (destroys) the View and its children from the DOM.
      */
     remove: function () {
-        wig.env.viewManager.removeViewFromParent(this);
+        env.viewManager.removeViewFromParent(this);
     }
 });
 

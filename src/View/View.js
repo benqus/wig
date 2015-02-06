@@ -72,7 +72,7 @@ View.extend = function (proto, statik) {
 };
 
 View.add = function (options, parentView) {
-    wig.env.insurer.exists.object(
+    env.insurer.exists.object(
         parentView, 'Parent View cannot be undefined!');
     return parentView.addView(this, options);
 };

@@ -73,7 +73,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
             classes.push(customCSS);
         }
 
-        wig.env.dom.initNode(view.getNode(), classes);
+        env.dom.initNode(view.getNode(), classes);
     },
 
     // Method is invoked by remove
