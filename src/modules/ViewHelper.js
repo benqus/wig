@@ -244,14 +244,14 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      * @param {string}   type
      */
     undelegateType: function (view, type) {
-        var viewID = this.getID(),
+        var viewID = view.getID(),
             customEvents = View.Registry.get(viewID).customEvents,
             selectors = customEvents[type],
             l = selectors.length,
             node;
 
         while (l--) {
-            node = this.find(selectors[l]);
+            node = view.find(selectors[l]);
             env.uiEventProxy.removeListener(node, type);
         }
     },
@@ -264,6 +264,6 @@ var ViewHelper = wig.ViewHelper = Class.extend({
             customEvents = View.Registry.get(viewID).customEvents;
 
         Object.keys(customEvents).forEach(
-            this.undelegateType.bind(this, customEvents));
+            this.undelegateType.bind(this, view));
     }
 });
