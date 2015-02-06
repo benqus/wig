@@ -6,7 +6,7 @@
 
         className: 'Select',
 
-        props: [
+        expects: [
             'onChange'
         ],
 

@@ -42,7 +42,7 @@ var View = wig.View = Class.extend({
     /**
      * @type {object|string[]}
      */
-    props: {},
+    expects: {},
 
     /**
      * @type {string|string[]|function}

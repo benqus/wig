@@ -6,7 +6,7 @@
 
         className: 'Video',
 
-        props: {
+        expects: {
             onProgress: true
         },
 

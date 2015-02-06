@@ -81,14 +81,14 @@ describe('View - custom', function () {
     });
 
     it('props are available on the View instance', function () {
-        var props = [
+        var expects = [
                 'a',
                 'b'
             ],
             a = {},
             b = {},
             CustomView = View.extend({
-                props: props
+                expects: expects
             }),
             view = new CustomView({
                 a: a,

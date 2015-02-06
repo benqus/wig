@@ -5,7 +5,7 @@
         tagName: 'article',
         className: 'Tile',
 
-        props: {
+        expects: {
             onRemove: true
         },
 

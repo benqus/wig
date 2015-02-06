@@ -130,7 +130,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
     },
 
     cleanupContext: function (view, context) {
-        var props = view.props,
+        var expects = view.expects,
             prop,
             l;
         // remove default Wig specific properties
@@ -138,13 +138,13 @@ var ViewHelper = wig.ViewHelper = Class.extend({
         delete context.css;
         delete context.node;
 
-        if (typeof view.props === 'object' && !Array.isArray(view.props)) {
-            props = Object.keys(view.props);
+        if (typeof expects === 'object' && !Array.isArray(expects)) {
+            expects = Object.keys(expects);
         }
-        l = props.length;
+        l = expects.length;
 
         while (l--) {
-            prop = props[l];
+            prop = expects[l];
             env.insurer.is.defined(
                 view[prop], '[' + prop + '] is already defined on the View instance!');
 
