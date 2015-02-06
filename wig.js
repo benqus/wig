@@ -1098,30 +1098,14 @@ var View = wig.View = Class.extend({
     // Properties //
     // ////////// //
 
-    /**
-     * @type {string}
-     */
-    tagName: 'div',
-
-    /**
-     * @type {string}
-     */
+    // strings
+    tagName:   'div',
     className: 'View',
 
-    /**
-     * @type {object}
-     */
-    defaults: {},
-
-    /**
-     * @type {object}
-     */
+    // objects
+    defaults:  {},
     renderMap: {},
-
-    /**
-     * @type {object}
-     */
-    events: {},
+    events:    {},
 
     /**
      * @type {View}
