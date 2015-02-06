@@ -34,7 +34,7 @@ var ViewManager = wig.ViewManager = Class.extend({
 
     getRootNodeMapping: function (parentView, childView) {
         var viewID = childView.getID(),
-            selector = parentView.getSelectorForChild(viewID),
+            selector = env.viewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
         return api.getElement(rootNode, selector);
@@ -75,7 +75,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             rootNode.removeChild(childNode);
         }
 
-        view.paint();
+        env.viewHelper.paint(view);
 
         this.DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
         this.Selection.restoreSelectionInView(view);

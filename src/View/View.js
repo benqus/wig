@@ -18,7 +18,7 @@ var View = wig.View = Class.extend({
         this.context  = {};
         this.attached = false;
 
-        this.initializeWithContext(context);
+        env.viewHelper.initializeWithContext(this, context);
     }
 }, {
 
