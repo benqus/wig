@@ -155,7 +155,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
 
     _serializeAndRemoveView: function (view, childViewID) {
         var childView = view.getView(childViewID),
-            serializedChild = childView.serialize();
+            serializedChild = env.viewHelper.serialize(childView);
 
         View.Registry.get(view.getID())
             .contextRegistry.set(childViewID, serializedChild);
@@ -204,5 +204,13 @@ var ViewHelper = wig.ViewHelper = Class.extend({
         Object.keys(view.events).forEach(view.listenFor, view);
         // initialize children
         env.viewHelper.initializeChildren(view);
+    },
+
+    /**
+     * Method contains logic to serialize the View into a context.
+     * @returns {object}
+     */
+    serialize: function (view) {
+        return extend({}, view.defaults, view.context);
     }
 });

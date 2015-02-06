@@ -42,7 +42,7 @@ var ViewManager = wig.ViewManager = Class.extend({
 
     compileTemplate: function (view) {
         var template = view.template,
-            context = view.serialize();
+            context = env.viewHelper.serialize(view);
 
         if (typeof template === 'function') {
             return view.template(context);
@@ -107,5 +107,12 @@ var ViewManager = wig.ViewManager = Class.extend({
         if (view) {
             view.remove();
         }
+    },
+
+    inheritCSS: function (superClassName, className) {
+        if (className) {
+            return superClassName + ' ' + className;
+        }
+        return superClassName;
     }
 });

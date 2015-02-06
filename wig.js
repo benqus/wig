@@ -770,7 +770,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
 
     _serializeAndRemoveView: function (view, childViewID) {
         var childView = view.getView(childViewID),
-            serializedChild = childView.serialize();
+            serializedChild = env.viewHelper.serialize(childView);
 
         View.Registry.get(view.getID())
             .contextRegistry.set(childViewID, serializedChild);
@@ -819,6 +819,14 @@ var ViewHelper = wig.ViewHelper = Class.extend({
         Object.keys(view.events).forEach(view.listenFor, view);
         // initialize children
         env.viewHelper.initializeChildren(view);
+    },
+
+    /**
+     * Method contains logic to serialize the View into a context.
+     * @returns {object}
+     */
+    serialize: function (view) {
+        return extend({}, view.defaults, view.context);
     }
 });
 
@@ -866,7 +874,7 @@ var ViewManager = wig.ViewManager = Class.extend({
 
     compileTemplate: function (view) {
         var template = view.template,
-            context = view.serialize();
+            context = env.viewHelper.serialize(view);
 
         if (typeof template === 'function') {
             return view.template(context);
@@ -931,6 +939,13 @@ var ViewManager = wig.ViewManager = Class.extend({
         if (view) {
             view.remove();
         }
+    },
+
+    inheritCSS: function (superClassName, className) {
+        if (className) {
+            return superClassName + ' ' + className;
+        }
+        return superClassName;
     }
 });
 
@@ -1024,165 +1039,7 @@ var View = wig.View = Class.extend({
         this.attached = false;
 
         env.viewHelper.initializeWithContext(this, context);
-    }
-}, {
-
-    Registry: new Registry(),
-
-    /**
-     * Registers a (child) View instance in the ViewRegistry.
-     * If parentView is specified, parent View's ID will be mapped against the child View's ID.
-     * @param childView
-     * @param parentView
-     */
-    registerView: function (childView, parentView) {
-        var viewID = childView.getID();
-
-        View.Registry.set(viewID, {
-            contextRegistry: new Registry(),
-            customEvents: {},
-            children: [],
-            parent: (parentView && parentView.getID()),
-            view: childView
-        });
     },
-
-    removeView: function (view) {
-        if (typeof view !== 'string') {
-            view = view.getID();
-        }
-
-        View.Registry.get(view).contextRegistry.empty();
-        View.Registry.unset(view);
-    },
-
-    inheritCSS: function (superClassName, className) {
-        if (className) {
-            return superClassName + ' ' + className;
-        }
-        return superClassName;
-    }
-});
-
-View.extend = function (proto, statik) {
-    statik = (statik || {});
-
-    statik.add = View.add;
-    proto.className = View.inheritCSS(
-        this.prototype.className,
-        proto.className
-    );
-
-    return Class.extend.call(this, proto, statik);
-};
-
-View.add = function (options, parentView) {
-    env.insurer.exists.object(
-        parentView, 'Parent View cannot be undefined!');
-    return parentView.addView(this, options);
-};
-
-/*
- * DOM event related methods for the View
- */
-extend(View.prototype, {
-
-    /**
-     * @private
-     * @param {Registry} customEvents
-     * @param {string}   type
-     */
-    _undelegateType: function (customEvents, type) {
-        var selectors = customEvents[type],
-            l = selectors.length,
-            node;
-
-        while (l--) {
-            node = this.find(selectors[l]);
-            env.uiEventProxy.removeListener(node, type);
-        }
-    },
-
-    /**
-     * Delegate the UIEventProxy's listener to listen to
-     * non-bubbling events on a node instead of the document
-     * @param {string} type
-     * @param {string} selector
-     */
-    delegate: function (type, selector) {
-        var viewID = this.getID(),
-            customEvents = View.Registry.get(viewID).customEvents,
-            node;
-
-        if (!customEvents[type]) {
-            customEvents[type] = [];
-        }
-
-        if (customEvents[type].indexOf(selector) === -1) {
-            node = this.find(selector);
-            env.uiEventProxy.addListener(node, type);
-            customEvents[type].push(selector || '');
-        }
-    },
-
-    /**
-     * Undelegate non-bubbling event registered for the View
-     * @param {string} type
-     */
-    undelegate: function (type) {
-        var viewID = this.getID(),
-            customEvents = View.Registry.get(viewID).customEvents;
-
-        this._undelegateType(customEvents, type);
-    },
-
-    /**
-     * Undelegate all non-bubbling events registered for the View
-     */
-    undelegateAll: function () {
-        var viewID = this.getID(),
-            customEvents = View.Registry.get(viewID).customEvents;
-
-        Object.keys(customEvents).forEach(
-            this._undelegateType.bind(this, customEvents));
-    },
-
-    /**
-     * UIEventProxy listening to the specified event type.
-     * @param {string} type
-     */
-    listenFor: function (type) {
-        env.uiEventProxy.startListenTo(type);
-    },
-
-    /**
-     * Used by the UIEventProxy to execute the event handler on the view.
-     * @param {Event} event
-     */
-    fireDOMEvent: function (event) {
-        var listener = this.events[event.type];
-        if (typeof listener !== 'function') {
-            listener = this[listener];
-        }
-        if (listener) {
-            return listener.call(this, event);
-        }
-    },
-
-    /**
-     * Used by the UIEventProxy to determine whether the view
-     * has an event listener for the specified event type.
-     * @param {Event} event
-     */
-    hasEvent: function (event) {
-        return !!(this.events && this.events[event.type]);
-    }
-});
-
-/*
- * Public methods
- */
-extend(View.prototype, {
 
     // ////////// //
     // Properties //
@@ -1291,17 +1148,13 @@ extend(View.prototype, {
         env.viewHelper.notifyAttach(this);
     },
 
-    /**
-     * Removes (destroys) the children.
-     */
+    // Removes (destroys) the children.
     empty: function () {
         env.viewManager.getChildViews(this.getID())
             .forEach(this.removeView, this);
     },
 
-    /**
-     * Removes (destroys) the View and its children from the DOM.
-     */
+    // Removes (destroys) the View and its children from the DOM.
     remove: function () {
         env.viewManager.removeViewFromParent(this);
     },
@@ -1319,11 +1172,8 @@ extend(View.prototype, {
     addView: function (ViewClass, childOptions) {
         var parentID = this.getID(),
             contextRegistry = View.Registry.get(parentID).contextRegistry,
-            oldChildContext,
-            newChildContext,
-            options,
-            childID,
-            childView;
+            oldChildContext, newChildContext,
+            options, childID, childView;
         // resolve arguments
         if (ViewClass && typeof ViewClass === 'object') {
             childOptions = ViewClass;
@@ -1395,14 +1245,6 @@ extend(View.prototype, {
     },
 
     /**
-     * Returns the context to be rendered.
-     * @returns {context}
-     */
-    getContext: function () {
-        return this.context;
-    },
-
-    /**
      * Method contains logic to parse the new context for the View.
      * @returns {string}
      */
@@ -1410,28 +1252,159 @@ extend(View.prototype, {
         return newContext;
     },
 
+    // Method will be executed after the View is attached to the DOM.
+    onAttach: NoOp,
+
+    // Method will be executed before the View is detached from the DOM.
+    onDetach: NoOp,
+
+    // Method will be executed to create the View structure within the current View.
+    render: NoOp
+}, {
+
+    Registry: new Registry(),
+
     /**
-     * Method contains logic to serialize the View into a context.
-     * @returns {string}
+     * Registers a (child) View instance in the ViewRegistry.
+     * If parentView is specified, parent View's ID will be mapped against the child View's ID.
+     * @param childView
+     * @param parentView
      */
-    serialize: function () {
-        return extend({}, this.defaults, this.context);
+    registerView: function (childView, parentView) {
+        var viewID = childView.getID();
+
+        View.Registry.set(viewID, {
+            contextRegistry: new Registry(),
+            customEvents: {},
+            children: [],
+            parent: (parentView && parentView.getID()),
+            view: childView
+        });
+    },
+
+    removeView: function (view) {
+        if (typeof view !== 'string') {
+            view = view.getID();
+        }
+
+        View.Registry.get(view).contextRegistry.empty();
+        View.Registry.unset(view);
+    }
+});
+
+View.extend = function (proto, statik) {
+    statik = (statik || {});
+
+    statik.add = View.add;
+    proto.className = env.viewManager.inheritCSS(
+        this.prototype.className,
+        proto.className
+    );
+
+    return Class.extend.call(this, proto, statik);
+};
+
+View.add = function (options, parentView) {
+    env.insurer.exists.object(
+        parentView, 'Parent View cannot be undefined!');
+    return parentView.addView(this, options);
+};
+
+/*
+ * DOM event related methods for the View
+ */
+extend(View.prototype, {
+
+    /**
+     * @private
+     * @param {Registry} customEvents
+     * @param {string}   type
+     */
+    _undelegateType: function (customEvents, type) {
+        var selectors = customEvents[type],
+            l = selectors.length,
+            node;
+
+        while (l--) {
+            node = this.find(selectors[l]);
+            env.uiEventProxy.removeListener(node, type);
+        }
     },
 
     /**
-     * Method will be executed after the View is attached to the DOM.
+     * Delegate the UIEventProxy's listener to listen to
+     * non-bubbling events on a node instead of the document
+     * @param {string} type
+     * @param {string} selector
      */
-    onAttach: NoOp,
+    delegate: function (type, selector) {
+        var viewID = this.getID(),
+            customEvents = View.Registry.get(viewID).customEvents,
+            node;
+
+        if (!customEvents[type]) {
+            customEvents[type] = [];
+        }
+
+        if (customEvents[type].indexOf(selector) === -1) {
+            node = this.find(selector);
+            env.uiEventProxy.addListener(node, type);
+            customEvents[type].push(selector || '');
+        }
+    },
 
     /**
-     * Method will be executed before the View is detached from the DOM.
+     * Undelegate non-bubbling event registered for the View
+     * @param {string} type
      */
-    onDetach: NoOp,
+    undelegate: function (type) {
+        var viewID = this.getID(),
+            customEvents = View.Registry.get(viewID).customEvents;
+
+        this._undelegateType(customEvents, type);
+    },
 
     /**
-     * Method will be executed to create the View structure within the current View.
+     * Undelegate all non-bubbling events registered for the View
      */
-    render: NoOp
+    undelegateAll: function () {
+        var viewID = this.getID(),
+            customEvents = View.Registry.get(viewID).customEvents;
+
+        Object.keys(customEvents).forEach(
+            this._undelegateType.bind(this, customEvents));
+    },
+
+    /**
+     * UIEventProxy listening to the specified event type.
+     * @param {string} type
+     */
+    listenFor: function (type) {
+        env.uiEventProxy.startListenTo(type);
+    },
+
+    /**
+     * Used by the UIEventProxy to execute the event handler on the view.
+     * @param {Event} event
+     */
+    fireDOMEvent: function (event) {
+        var listener = this.events[event.type];
+        if (typeof listener !== 'function') {
+            listener = this[listener];
+        }
+        if (listener) {
+            return listener.call(this, event);
+        }
+    },
+
+    /**
+     * Used by the UIEventProxy to determine whether the view
+     * has an event listener for the specified event type.
+     * @param {Event} event
+     */
+    hasEvent: function (event) {
+        return !!(this.events && this.events[event.type]);
+    }
 });
 
     wig.init();
