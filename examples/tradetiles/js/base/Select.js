@@ -16,7 +16,7 @@
 
         events: {
             change: function () {
-                this.invoke('onChange', this.node.value);
+                this.onChange(this.node.value);
             }
         },
 

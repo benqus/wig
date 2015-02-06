@@ -995,84 +995,6 @@ View.add = function (options, parentView) {
 };
 
 /*
- * View child related operations
- */
-extend(View.prototype, {
-
-    /**
-     * Creates and adds the child view specified by the child view's _ID attribute.
-     * @param   {Function} [ViewClass]    - child View type
-     * @param   {object}   [childOptions] - options to create the child with
-     * @returns {View}
-     */
-    addView: function (ViewClass, childOptions) {
-        var parentID = this.getID(),
-            contextRegistry = View.Registry.get(parentID).contextRegistry,
-            oldChildContext,
-            newChildContext,
-            options,
-            childID,
-            childView;
-        // resolve arguments
-        if (ViewClass && typeof ViewClass === 'object') {
-            childOptions = ViewClass;
-            ViewClass = (this.View || View);
-        }
-        childOptions = (childOptions || {});
-        // generate child id
-        childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
-        // apply previous context
-        oldChildContext = contextRegistry.get(childID);
-        newChildContext = extend({}, oldChildContext, childOptions);
-        // create child view
-        options = extend(newChildContext, { id: childID });
-        childView = env.viewHelper.createChildView(
-            this, ViewClass, options);
-        // render child view if parent (this) is attached
-        if (this.attached) {
-            env.viewHelper.paintChildView(this, childID);
-        }
-
-        return childView;
-    },
-
-    /**
-     * Returns the child view specified by the child view's _ID attribute.
-     * @param {string|number} childViewID
-     */
-    getView: function (childViewID) {
-        var children = env.viewManager.getChildViews(this.getID());
-        // if id is an array index instead of a child's ID
-        if (typeof childViewID === 'number' && childViewID < children.length) {
-            childViewID = children[childViewID];
-        }
-        // if id is not an absolute id
-        if (children.indexOf(childViewID) === -1) {
-            childViewID = this.getID() + '.' + childViewID;
-        }
-        return env.viewManager.getView(childViewID);
-    },
-
-    /**
-     * Removes a child view specified by the child view's _ID attribute.
-     * @param {string} childViewID
-     */
-    removeView: function (childViewID) {
-        var childView = this.getView(childViewID),
-            children = env.viewManager.getChildViews(this.getID()),
-            index;
-
-        if (childView) {
-            index = children.indexOf(childView.getID());
-            if (index > -1) {
-                env.viewHelper.destroy(childView);
-                children.splice(index, 1);
-            }
-        }
-    }
-});
-
-/*
  * DOM event related methods for the View
  */
 extend(View.prototype, {
@@ -1268,59 +1190,14 @@ extend(View.prototype, {
 });
 
 /*
- * Methods that are allowed to be overriden/inherited/extended by user for custom logic.
+ * Public methods
  */
 extend(View.prototype, {
 
-    /**
-     * Returns additional, logic based CSS classes for the View's node.
-     * @returns {string}
-     */
-    getCSS: function () {
-        return '';
-    },
+    // ////////// //
+    // Properties //
+    // ////////// //
 
-    /**
-     * Returns the context to be rendered.
-     * @returns {context}
-     */
-    getContext: function () {
-        return this.context;
-    },
-
-    /**
-     * Method contains logic to parse the new context for the View.
-     * @returns {string}
-     */
-    parseContext: function (newContext) {
-        return newContext;
-    },
-
-    /**
-     * Method contains logic to serialize the View into a context.
-     * @returns {string}
-     */
-    serialize: function () {
-        return extend({}, this.defaults, this.context);
-    },
-
-    /**
-     * Method will be executed after the View is attached to the DOM.
-     */
-    onAttach: NoOp,
-
-    /**
-     * Method will be executed before the View is detached from the DOM.
-     */
-    onDetach: NoOp,
-
-    /**
-     * Method will be executed to create the View structure within the current View.
-     */
-    render: NoOp
-});
-
-extend(View.prototype, {
     /**
      * @type {string}
      */
@@ -1359,13 +1236,11 @@ extend(View.prototype, {
     /**
      * @type {string|string[]|function}
      */
-    template: ''
-});
+    template: '',
 
-/*
- * Public methods
- */
-extend(View.prototype, {
+    // //// //
+    // View //
+    // //// //
 
     get: function (key) {
         return (this.context[key] || this.defaults[key]);
@@ -1427,17 +1302,6 @@ extend(View.prototype, {
     },
 
     /**
-     * Helper method to invoke a method on the View.
-     * @param {string} methodName
-     */
-    invoke: function (methodName) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        if (typeof this[methodName] === 'function') {
-            this[methodName].apply(null, args);
-        }
-    },
-
-    /**
      * Removes (destroys) the children.
      */
     empty: function () {
@@ -1450,7 +1314,134 @@ extend(View.prototype, {
      */
     remove: function () {
         env.viewManager.removeViewFromParent(this);
-    }
+    },
+
+    // ///// ////////// //
+    // Child operations //
+    // ///// ////////// //
+
+    /**
+     * Creates and adds the child view specified by the child view's _ID attribute.
+     * @param   {Function} [ViewClass]    - child View type
+     * @param   {object}   [childOptions] - options to create the child with
+     * @returns {View}
+     */
+    addView: function (ViewClass, childOptions) {
+        var parentID = this.getID(),
+            contextRegistry = View.Registry.get(parentID).contextRegistry,
+            oldChildContext,
+            newChildContext,
+            options,
+            childID,
+            childView;
+        // resolve arguments
+        if (ViewClass && typeof ViewClass === 'object') {
+            childOptions = ViewClass;
+            ViewClass = (this.View || View);
+        }
+        childOptions = (childOptions || {});
+        // generate child id
+        childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
+        // apply previous context
+        oldChildContext = contextRegistry.get(childID);
+        newChildContext = extend({}, oldChildContext, childOptions);
+        // create child view
+        options = extend(newChildContext, { id: childID });
+        childView = env.viewHelper.createChildView(
+            this, ViewClass, options);
+        // render child view if parent (this) is attached
+        if (this.attached) {
+            env.viewHelper.paintChildView(this, childID);
+        }
+
+        return childView;
+    },
+
+    /**
+     * Returns the child view specified by the child view's _ID attribute.
+     * @param {string|number} childViewID
+     */
+    getView: function (childViewID) {
+        var children = env.viewManager.getChildViews(this.getID());
+        // if id is an array index instead of a child's ID
+        if (typeof childViewID === 'number' && childViewID < children.length) {
+            childViewID = children[childViewID];
+        }
+        // if id is not an absolute id
+        if (children.indexOf(childViewID) === -1) {
+            childViewID = this.getID() + '.' + childViewID;
+        }
+        return env.viewManager.getView(childViewID);
+    },
+
+    /**
+     * Removes a child view specified by the child view's _ID attribute.
+     * @param {string} childViewID
+     */
+    removeView: function (childViewID) {
+        var childView = this.getView(childViewID),
+            children = env.viewManager.getChildViews(this.getID()),
+            index;
+
+        if (childView) {
+            index = children.indexOf(childView.getID());
+            if (index > -1) {
+                env.viewHelper.destroy(childView);
+                children.splice(index, 1);
+            }
+        }
+    },
+
+    // ///////// //
+    // Overrides //
+    // ///////// //
+
+    /**
+     * Returns additional, logic based CSS classes for the View's node.
+     * @returns {string}
+     */
+    getCSS: function () {
+        return '';
+    },
+
+    /**
+     * Returns the context to be rendered.
+     * @returns {context}
+     */
+    getContext: function () {
+        return this.context;
+    },
+
+    /**
+     * Method contains logic to parse the new context for the View.
+     * @returns {string}
+     */
+    parseContext: function (newContext) {
+        return newContext;
+    },
+
+    /**
+     * Method contains logic to serialize the View into a context.
+     * @returns {string}
+     */
+    serialize: function () {
+        return extend({}, this.defaults, this.context);
+    },
+
+    /**
+     * Method will be executed after the View is attached to the DOM.
+     */
+    onAttach: NoOp,
+
+    /**
+     * Method will be executed before the View is detached from the DOM.
+     */
+    onDetach: NoOp,
+
+    /**
+     * Method will be executed to create the View structure within the current View.
+     */
+    render: NoOp
 });
 
     wig.init();
