@@ -177,4 +177,26 @@ describe('View - custom', function () {
         assert.equal(view.getNode(), null);
     });
 
+    it('View updates with new context attributes', function () {
+        var TestView = View.extend({
+                defaults: {
+                    a: 'a'
+                },
+                template: '{{ a }}{{ b }}'
+            }),
+            view = new TestView({
+                b: 'b'
+            });
+
+        wig.renderView(view, domFixture);
+
+        assert.equal(view.getNode().innerHTML, 'ab');
+
+        view.update({
+            a: 'c'
+        });
+
+        assert.equal(view.getNode().innerHTML, 'cb');
+    });
+
 });
