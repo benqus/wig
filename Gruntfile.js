@@ -39,6 +39,7 @@ module.exports = function (grunt) {
                     './src/core/vars.js',
                     './src/core/Class.js',
 
+                    './src/modules/base/**/*.js',
                     './src/modules/**/*.js',
 
                     './src/methods/**/*.js',
