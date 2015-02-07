@@ -2,7 +2,7 @@ describe('DOM', function () {
     'use strict';
 
     var assert = chai.assert,
-        DOM = new wig.DOM(),
+        DOM = new wig.module.DOM(),
         domFixture;
 
     before(function () {
@@ -78,7 +78,7 @@ describe('DOM', function () {
                     a: '1'
                 };
 
-            DOM.initNode(div, null, dataset);
+            DOM.initNode(div, null, null, dataset);
 
             assert.deepEqual(div.dataset, dataset);
         });

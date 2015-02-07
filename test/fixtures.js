@@ -11,10 +11,10 @@
             getNode: sinon.stub(),
             setNode: sinon.stub(),
             paint: sinon.stub(),
+            onAttach: sinon.stub(),
+            onDetach: sinon.stub(),
             empty: sinon.stub(),
-            render: sinon.stub(),
-            notifyAttach: sinon.stub(),
-            notifyDetach: sinon.stub()
+            render: sinon.stub()
         };
     }
 
@@ -29,7 +29,7 @@
                 }
             }
 
-            wig.View.registerView(view, parent);
+            wig.env.viewRegistry.registerView(view, parent);
 
             return view;
         },

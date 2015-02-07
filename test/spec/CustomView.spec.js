@@ -11,7 +11,7 @@ describe('View - custom', function () {
 
     afterEach(function () {
         domFixture.innerHTML = '';
-        wig.View.Registry.empty();
+        wig.env.viewRegistry.empty();
     });
 
     it('uses custom tagName', function () {
@@ -81,14 +81,14 @@ describe('View - custom', function () {
     });
 
     it('props are available on the View instance', function () {
-        var props = [
+        var expects = [
                 'a',
                 'b'
             ],
             a = {},
             b = {},
             CustomView = View.extend({
-                props: props
+                expects: expects
             }),
             view = new CustomView({
                 a: a,
@@ -175,6 +175,44 @@ describe('View - custom', function () {
         view.remove();
 
         assert.equal(view.getNode(), null);
+    });
+
+    it('View#getAttributes', function () {
+        var CustomView = View.extend({
+                tagName: 'button',
+                getAttributes: function () {
+                    return {
+                        disabled: 'disabled',
+                        a: 'a'
+                    };
+                }
+            }),
+            view = new CustomView();
+
+        assert.ok(view.getNode().disabled);
+        assert.equal(view.getNode().a, 'a');
+    });
+
+    it('View updates with new context attributes', function () {
+        var TestView = View.extend({
+                defaults: {
+                    a: 'a'
+                },
+                template: '{{ a }}{{ b }}'
+            }),
+            view = new TestView({
+                b: 'b'
+            });
+
+        wig.renderView(view, domFixture);
+
+        assert.equal(view.getNode().innerHTML, 'ab');
+
+        view.update({
+            a: 'c'
+        });
+
+        assert.equal(view.getNode().innerHTML, 'cb');
     });
 
 });

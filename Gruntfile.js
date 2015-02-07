@@ -20,8 +20,7 @@ module.exports = function (grunt) {
                 src: [
                     'Gruntfile.js',
                     'src/**/*.js',
-                    'test/**/*.js',
-                    'examples/**/*.js'
+                    'test/**/*.js'
                 ]
             }
         },
@@ -35,17 +34,15 @@ module.exports = function (grunt) {
                 src: [
                     './src/intro',
 
-                    './src/core/api.js',
                     './src/core/env.js',
-                    './src/core/vars.js',
-                    './src/core/Class.js',
+                    './src/core/**/*.js',
 
+                    './src/modules/base/**/*.js',
                     './src/modules/**/*.js',
 
                     './src/methods/**/*.js',
 
-                    './src/View/View.js',
-                    './src/View/**/*.js',
+                    './src/View.js',
 
                     './src/**/*.js',
 

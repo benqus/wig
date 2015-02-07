@@ -1,8 +1,11 @@
-var DOM = wig.DOM = Class.extend({
+var DOM = module.DOM = Class.extend({
 
-    initNode: function (element, classSet, dataSet) {
+    initNode: function (element, classSet, attributes, dataSet) {
         var classes = classSet,
             cl;
+
+        extend(element, attributes);
+        extend(element.dataset, dataSet);
 
         if (Array.isArray(classSet)) {
             classes = classSet.join(' ');
@@ -18,10 +21,6 @@ var DOM = wig.DOM = Class.extend({
 
         if (classes) {
             element.className = classes;
-        }
-
-        if (dataSet) {
-            extend(element.dataset, dataSet);
         }
 
         return element;

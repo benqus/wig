@@ -1,6 +1,6 @@
 var App = {
 
-    todos: new wig.Registry(),
+    todos: new wig.module.Registry(),
 
     createTodo: (function () {
         var i = 0;

@@ -5,7 +5,7 @@ App.Button = wig.View.extend({
 
     template: 'x',
 
-    props: [
+    expects: [
         'onClick'
     ],
 

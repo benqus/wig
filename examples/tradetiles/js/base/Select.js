@@ -6,7 +6,7 @@
 
         className: 'Select',
 
-        props: [
+        expects: [
             'onChange'
         ],
 
@@ -16,7 +16,7 @@
 
         events: {
             change: function () {
-                this.invoke('onChange', this.node.value);
+                this.onChange(this.node.value);
             }
         },
 
@@ -49,7 +49,7 @@
                 }
             }
 
-            return wig.api.compile('<option value="{{ value }}">{{ name }}</option>', {
+            return wig.env.compile('<option value="{{ value }}">{{ name }}</option>', {
                 name: name,
                 value: value
             });

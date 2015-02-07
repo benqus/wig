@@ -1,6 +1,6 @@
 {
   "name": "Wig",
-  "version": "0.1.0-rc",
+  "version": "0.2.0",
   "description": "Minimalistic, scalable, extensible, dependency-less Front-end factory for HTML5 applications",
   "main": "./wig.js",
   "repository": {

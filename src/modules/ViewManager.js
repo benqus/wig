@@ -1,4 +1,4 @@
-var ViewManager = wig.ViewManager = Class.extend({
+var ViewManager = module.ViewManager = Class.extend({
 
     constructor: function (ViewRegistry, DOM, Selection) {
         this.DOM = DOM;
@@ -16,6 +16,11 @@ var ViewManager = wig.ViewManager = Class.extend({
         return (item && item.parent);
     },
 
+    getChildViews: function (id) {
+        var item = this.ViewRegistry.get(id);
+        return (item && item.children);
+    },
+
     getParentView: function (childView) {
         var childID = childView.getID(),
             parentID = this.getParent(childID);
@@ -29,15 +34,15 @@ var ViewManager = wig.ViewManager = Class.extend({
 
     getRootNodeMapping: function (parentView, childView) {
         var viewID = childView.getID(),
-            selector = parentView.getSelectorForChild(viewID),
+            selector = env.viewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
-        return api.getElement(rootNode, selector);
+        return env.getElement(rootNode, selector);
     },
 
     compileTemplate: function (view) {
         var template = view.template,
-            context = view.serialize();
+            context = env.viewHelper.serialize(view);
 
         if (typeof template === 'function') {
             return view.template(context);
@@ -47,7 +52,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             template = template.join('');
         }
 
-        return api.compile(template, context);
+        return env.compile(template, context);
     },
 
     updateView: function (view) {
@@ -56,7 +61,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             rootNode = childNode.parentNode,
             childNodeIndex;
 
-        view.undelegateAll();
+        env.viewHelper.undelegateAll(view);
 
         this.Selection.preserveSelectionInView(view);
 
@@ -70,7 +75,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             rootNode.removeChild(childNode);
         }
 
-        view.paint();
+        env.viewHelper.paint(view);
 
         this.DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
         this.Selection.restoreSelectionInView(view);
@@ -78,12 +83,12 @@ var ViewManager = wig.ViewManager = Class.extend({
 
     notifyViewAboutAttach: function (viewID) {
         var view = this.getView(viewID);
-        view.notifyAttach();
+        env.viewHelper.notifyAttach(view);
     },
 
     notifyViewAboutDetach: function (viewID) {
         var view = this.getView(viewID);
-        view.notifyDetach();
+        env.viewHelper.notifyDetach(view);
     },
 
     removeViewFromParent: function (view) {
@@ -93,7 +98,7 @@ var ViewManager = wig.ViewManager = Class.extend({
         if (parentView) {
             parentView.removeView(childViewID);
         } else {
-            view.destroy();
+            env.viewHelper.destroy(view);
         }
     },
 
@@ -102,5 +107,43 @@ var ViewManager = wig.ViewManager = Class.extend({
         if (view) {
             view.remove();
         }
+    },
+
+    inheritCSS: function (superClassName, className) {
+        if (className) {
+            return superClassName + ' ' + className;
+        }
+        return superClassName;
+    },
+
+    getCustomEventsForView: function (viewID) {
+        return this.ViewRegistry.getCustomEventsForView(viewID);
+    },
+
+    registerChildForView: function (view, childView) {
+        this.ViewRegistry.registerView(childView, view);
+        this.getChildViews(view.getID())
+            .push(childView.getID());
+    },
+
+    serializeChildForView: function (view, childViewID) {
+        var childView = view.getView(childViewID),
+            serializedChild = env.viewHelper.serialize(childView);
+
+        this.ViewRegistry
+            .setContextForChildView(view.getID(), childViewID, serializedChild);
+    },
+
+    emptyContextRegistryForView: function (viewID) {
+        // empty child context registry
+        this.ViewRegistry
+            .emptyViewContextRegistry(viewID);
+    },
+
+    emptyView: function (view) {
+        this.getChildViews(view.getID())
+            .forEach(view.removeView, view);
+
+        this.ViewRegistry.removeView(view);
     }
 });

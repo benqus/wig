@@ -24,7 +24,7 @@ App.Item = wig.View.extend({
         }
     },
 
-    props: [
+    expects: [
         'onRemove'
     ],
 

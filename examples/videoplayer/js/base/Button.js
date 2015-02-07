@@ -5,7 +5,7 @@
         tagName: 'button',
         className: 'Button',
 
-        props: {
+        expects: {
             onClick: true
         },
 

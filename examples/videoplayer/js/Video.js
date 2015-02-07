@@ -6,7 +6,7 @@
 
         className: 'Video',
 
-        props: {
+        expects: {
             onProgress: true
         },
 
@@ -21,7 +21,7 @@
         events: {
             progress: function () {
                 var node = this.getNode();
-                this.invoke('onProgress', node.currentTime);
+                this.onProgress(node.currentTime);
             }
         },
 

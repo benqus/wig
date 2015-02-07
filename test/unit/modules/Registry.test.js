@@ -1,17 +1,18 @@
 describe('modules/Registry', function () {
     "use strict";
 
-    var assert = chai.assert;
+    var assert = chai.assert,
+        Registry = wig.module.Registry;
 
     it('class', function () {
-        var registry = new wig.Registry();
+        var registry = new Registry();
 
-        assert.equal(typeof wig.Registry, 'function');
+        assert.equal(typeof Registry, 'function');
         assert.ok(registry.root);
     });
 
     it('#set', function () {
-        var registry = new wig.Registry();
+        var registry = new Registry();
 
         registry.set('a', 1);
 
@@ -20,7 +21,7 @@ describe('modules/Registry', function () {
     });
 
     it('#unset', function () {
-        var registry = new wig.Registry(),
+        var registry = new Registry(),
             object = {};
 
         registry.set('a', object);
@@ -31,7 +32,7 @@ describe('modules/Registry', function () {
     });
 
     it('#get', function () {
-        var registry = new wig.Registry(),
+        var registry = new Registry(),
             object = {};
 
         registry.set('a', object);
@@ -40,7 +41,7 @@ describe('modules/Registry', function () {
     });
 
     it('#each', function () {
-        var registry = new wig.Registry(),
+        var registry = new Registry(),
             results = {};
 
         registry.set('a', 1);
@@ -60,7 +61,7 @@ describe('modules/Registry', function () {
     });
 
     it('#empty', function () {
-        var registry = new wig.Registry();
+        var registry = new Registry();
 
         registry.set('a', 1);
         registry.set('b', 2);

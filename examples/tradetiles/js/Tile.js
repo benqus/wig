@@ -5,7 +5,7 @@
         tagName: 'article',
         className: 'Tile',
 
-        props: {
+        expects: {
             onRemove: true
         },
 
@@ -67,7 +67,7 @@
         // ////// //
 
         onClick: function () {
-            this.invoke('onRemove', this.get('value'));
+            this.onRemove(this.get('value'));
         },
 
         addButton: function (id, action, price) {

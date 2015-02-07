@@ -1,5 +1,8 @@
-// user overrides to introduce backwards compatibility
-var api = wig.api = {
+/*
+ * @namespace
+ * user overrides to introduce backwards compatibility or custom templating
+ */
+extend(env, {
 
     /**
      * Method compiles a template with a context object.
@@ -14,6 +17,15 @@ var api = wig.api = {
     },
 
     /**
+     * Method returns the currently active Element in the DOM.
+     * Override method for older browser support.
+     * @returns {Element}
+     */
+    getFocusedElement: function () {
+        return document.activeElement;
+    },
+
+    /**
      * Method compiles a template with a context object.
      * Introduce custom template compilation by override.
      * @param   {string} template
@@ -21,7 +33,6 @@ var api = wig.api = {
      * @returns {String}
      */
     compile: function (template, context) {
-        return wig.env.compiler.compile(template, context);
+        return env.compiler.compile(template, context);
     }
-
-};
+});
