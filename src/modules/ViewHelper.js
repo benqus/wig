@@ -1,9 +1,14 @@
 // helper module to provide privacy on the public View interface
 var ViewHelper = wig.ViewHelper = Class.extend({
 
-    constructor: function (viewManager) {
+    constructor: function (viewRegistry, viewManager, uiEventProxy, dom, insurer) {
         Class.apply(this, arguments);
+
+        this.DOM = dom;
+        this.Insurer = insurer;
         this.ViewManager = viewManager;
+        this.ViewRegistry = viewRegistry;
+        this.UIEventProxy = uiEventProxy;
     },
 
     /**
@@ -13,7 +18,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      */
     createChildView: function (view, ViewClass, options) {
         var childView = new ViewClass(options);
-        View.registerView(childView, view);
+        this.ViewRegistry.registerView(childView, view);
         this.ViewManager.getChildViews(view.getID())
             .push(childView.getID());
         return childView;
@@ -37,7 +42,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
 
     paint: function (view) {
         var node = view.getNode(),
-            html = env.viewManager.compileTemplate(view);
+            html = this.ViewManager.compileTemplate(view);
 
         node.innerHTML = (html || '');
 
@@ -85,7 +90,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
             classes.push(customCSS);
         }
 
-        env.dom.initNode(view.getNode(), classes);
+        this.DOM.initNode(view.getNode(), classes);
     },
 
     // Method is invoked by remove
@@ -106,7 +111,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
         node.innerHTML = '';
         view.node = null;
 
-        View.removeView(view);
+        this.ViewRegistry.removeView(view);
     },
 
     notifyAttach: function (view) {
@@ -145,11 +150,8 @@ var ViewHelper = wig.ViewHelper = Class.extend({
 
         while (l--) {
             prop = expects[l];
-            env.insurer.is.defined(
+            this.Insurer.is.defined(
                 view[prop], '[' + prop + '] is already defined on the View instance!');
-
-            env.insurer.is.notDefined(context[prop],
-                'View expects "' + prop + '" to be defined on the context!');
 
             view[prop] = context[prop];
             delete context[prop];
@@ -158,20 +160,20 @@ var ViewHelper = wig.ViewHelper = Class.extend({
 
     _serializeAndRemoveView: function (view, childViewID) {
         var childView = view.getView(childViewID),
-            serializedChild = env.viewHelper.serialize(childView);
+            serializedChild = this.serialize(childView);
 
-        View.Registry.get(view.getID())
-            .contextRegistry.set(childViewID, serializedChild);
+        this.ViewRegistry
+            .setContextForChildView(view.getID(), childViewID, serializedChild);
 
         view.removeView(childViewID);
     },
 
     _emptyAndPreserveChildContext: function (view) {
-        var id = view.getID(),
-            children = env.viewManager.getChildViews(id);
+        var viewID = view.getID(),
+            children = this.ViewManager.getChildViews(viewID);
         // empty child context registry
-        View.Registry.get(id)
-            .contextRegistry.empty();
+        this.ViewRegistry
+            .emptyViewContextRegistry(viewID);
 
         while (children.length > 0) {
             // method below will shift children out form the array
@@ -202,11 +204,11 @@ var ViewHelper = wig.ViewHelper = Class.extend({
             classes.push(view.css);
         }
         // assign classes and data context
-        env.dom.initNode(view.getNode(), classes, dataset);
+        this.DOM.initNode(view.getNode(), classes, dataset);
         // apply event listeners
         Object.keys(view.events).forEach(view.listenFor, view);
         // initialize children
-        env.viewHelper.initializeChildren(view);
+        this.initializeChildren(view);
     },
 
     /**
@@ -248,14 +250,14 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      */
     undelegateType: function (view, type) {
         var viewID = view.getID(),
-            customEvents = View.Registry.get(viewID).customEvents,
+            customEvents = this.ViewRegistry.getCustomEventsForView(viewID),
             selectors = customEvents[type],
             l = selectors.length,
             node;
 
         while (l--) {
             node = view.find(selectors[l]);
-            env.uiEventProxy.removeListener(node, type);
+            this.UIEventProxy.removeListener(node, type);
         }
     },
 
@@ -264,7 +266,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      */
     undelegateAll: function (view) {
         var viewID = view.getID(),
-            customEvents = View.Registry.get(viewID).customEvents;
+            customEvents = this.ViewRegistry.getCustomEventsForView(viewID);
 
         Object.keys(customEvents).forEach(
             this.undelegateType.bind(this, view));

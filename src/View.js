@@ -11,7 +11,7 @@ var View = wig.View = Class.extend({
         context = (context || {});
         // assign the ID and register the View
         this._ID = (context.id || generateID('v'));
-        View.registerView(this);
+        env.viewRegistry.registerView(this);
 
         this.css      = (context.css || '');
         this.node     = (context.node || document.createElement(this.tagName));
@@ -135,7 +135,7 @@ var View = wig.View = Class.extend({
      */
     addView: function (ViewClass, childOptions) {
         var parentID = this.getID(),
-            contextRegistry = View.Registry.get(parentID).contextRegistry,
+            contextRegistry = env.viewRegistry.getContextRegistryForView(parentID),
             oldChildContext, newChildContext,
             options, childID, childView;
         // resolve arguments
@@ -208,7 +208,7 @@ var View = wig.View = Class.extend({
      */
     delegate: function (type, selector) {
         var viewID = this.getID(),
-            customEvents = View.Registry.get(viewID).customEvents,
+            customEvents = env.viewRegistry.getCustomEventsForView(viewID),
             node;
 
         if (!customEvents[type]) {
@@ -258,36 +258,6 @@ var View = wig.View = Class.extend({
 
     // Method will be executed to create the View structure within the current View.
     render: NoOp
-}, {
-
-    Registry: new Registry(),
-
-    /**
-     * Registers a (child) View instance in the ViewRegistry.
-     * If parentView is specified, parent View's ID will be mapped against the child View's ID.
-     * @param childView
-     * @param parentView
-     */
-    registerView: function (childView, parentView) {
-        var viewID = childView.getID();
-
-        View.Registry.set(viewID, {
-            contextRegistry: new Registry(),
-            customEvents: {},
-            children: [],
-            parent: (parentView && parentView.getID()),
-            view: childView
-        });
-    },
-
-    removeView: function (view) {
-        if (typeof view !== 'string') {
-            view = view.getID();
-        }
-
-        View.Registry.get(view).contextRegistry.empty();
-        View.Registry.unset(view);
-    }
 });
 
 View.extend = function (proto, statik) {

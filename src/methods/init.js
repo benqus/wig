@@ -4,12 +4,14 @@ wig.init = function () {
     env.insurer = new Insurer();
     env.compiler = new Compiler();
     env.selection = new Selection(env.dom);
+    env.viewRegistry = new ViewRegistry();
 
     env.viewManager = new ViewManager(
-        View.Registry, env.dom, env.selection);
-
-    env.viewHelper = new ViewHelper(env.viewManager);
+        env.viewRegistry, env.dom, env.selection);
 
     env.uiEventProxy = new UIEventProxy(
         env.dom, env.viewManager);
+
+    env.viewHelper = new ViewHelper(env.viewRegistry,
+        env.viewManager, env.uiEventProxy, env.dom, env.insurer);
 };

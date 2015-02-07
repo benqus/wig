@@ -574,9 +574,14 @@ var UIEventProxy = wig.UIEventProxy = Class.extend({
 // helper module to provide privacy on the public View interface
 var ViewHelper = wig.ViewHelper = Class.extend({
 
-    constructor: function (viewManager) {
+    constructor: function (viewRegistry, viewManager, uiEventProxy, dom, insurer) {
         Class.apply(this, arguments);
+
+        this.DOM = dom;
+        this.Insurer = insurer;
         this.ViewManager = viewManager;
+        this.ViewRegistry = viewRegistry;
+        this.UIEventProxy = uiEventProxy;
     },
 
     /**
@@ -586,7 +591,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      */
     createChildView: function (view, ViewClass, options) {
         var childView = new ViewClass(options);
-        View.registerView(childView, view);
+        this.ViewRegistry.registerView(childView, view);
         this.ViewManager.getChildViews(view.getID())
             .push(childView.getID());
         return childView;
@@ -610,7 +615,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
 
     paint: function (view) {
         var node = view.getNode(),
-            html = env.viewManager.compileTemplate(view);
+            html = this.ViewManager.compileTemplate(view);
 
         node.innerHTML = (html || '');
 
@@ -658,7 +663,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
             classes.push(customCSS);
         }
 
-        env.dom.initNode(view.getNode(), classes);
+        this.DOM.initNode(view.getNode(), classes);
     },
 
     // Method is invoked by remove
@@ -679,7 +684,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
         node.innerHTML = '';
         view.node = null;
 
-        View.removeView(view);
+        this.ViewRegistry.removeView(view);
     },
 
     notifyAttach: function (view) {
@@ -718,11 +723,8 @@ var ViewHelper = wig.ViewHelper = Class.extend({
 
         while (l--) {
             prop = expects[l];
-            env.insurer.is.defined(
+            this.Insurer.is.defined(
                 view[prop], '[' + prop + '] is already defined on the View instance!');
-
-            env.insurer.is.notDefined(context[prop],
-                'View expects "' + prop + '" to be defined on the context!');
 
             view[prop] = context[prop];
             delete context[prop];
@@ -731,20 +733,20 @@ var ViewHelper = wig.ViewHelper = Class.extend({
 
     _serializeAndRemoveView: function (view, childViewID) {
         var childView = view.getView(childViewID),
-            serializedChild = env.viewHelper.serialize(childView);
+            serializedChild = this.serialize(childView);
 
-        View.Registry.get(view.getID())
-            .contextRegistry.set(childViewID, serializedChild);
+        this.ViewRegistry
+            .setContextForChildView(view.getID(), childViewID, serializedChild);
 
         view.removeView(childViewID);
     },
 
     _emptyAndPreserveChildContext: function (view) {
-        var id = view.getID(),
-            children = env.viewManager.getChildViews(id);
+        var viewID = view.getID(),
+            children = this.ViewManager.getChildViews(viewID);
         // empty child context registry
-        View.Registry.get(id)
-            .contextRegistry.empty();
+        this.ViewRegistry
+            .emptyViewContextRegistry(viewID);
 
         while (children.length > 0) {
             // method below will shift children out form the array
@@ -775,11 +777,11 @@ var ViewHelper = wig.ViewHelper = Class.extend({
             classes.push(view.css);
         }
         // assign classes and data context
-        env.dom.initNode(view.getNode(), classes, dataset);
+        this.DOM.initNode(view.getNode(), classes, dataset);
         // apply event listeners
         Object.keys(view.events).forEach(view.listenFor, view);
         // initialize children
-        env.viewHelper.initializeChildren(view);
+        this.initializeChildren(view);
     },
 
     /**
@@ -821,14 +823,14 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      */
     undelegateType: function (view, type) {
         var viewID = view.getID(),
-            customEvents = View.Registry.get(viewID).customEvents,
+            customEvents = this.ViewRegistry.getCustomEventsForView(viewID),
             selectors = customEvents[type],
             l = selectors.length,
             node;
 
         while (l--) {
             node = view.find(selectors[l]);
-            env.uiEventProxy.removeListener(node, type);
+            this.UIEventProxy.removeListener(node, type);
         }
     },
 
@@ -837,7 +839,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
      */
     undelegateAll: function (view) {
         var viewID = view.getID(),
-            customEvents = View.Registry.get(viewID).customEvents;
+            customEvents = this.ViewRegistry.getCustomEventsForView(viewID);
 
         Object.keys(customEvents).forEach(
             this.undelegateType.bind(this, view));
@@ -963,6 +965,69 @@ var ViewManager = wig.ViewManager = Class.extend({
     }
 });
 
+var ViewRegistry = wig.ViewRegistry = Registry.extend({
+
+    /**
+     * Registers a (child) View instance in the ViewRegistry.
+     * If parentView is specified, parent View's ID will be mapped against the child View's ID.
+     * @param {View}  childView
+     * @param {View} [parentView]
+     */
+    registerView: function (childView, parentView) {
+        var viewID = childView.getID(),
+            viewItem = new ViewRegistryItem(childView, parentView);
+
+        this.set(viewID, viewItem);
+    },
+
+    removeView: function (view) {
+        if (typeof view !== 'string') {
+            view = view.getID();
+        }
+
+        this.get(view).contextRegistry.empty();
+        this.unset(view);
+    },
+
+    getCustomEventsForView: function (viewID) {
+        return this.get(viewID).getCustomEvents();
+    },
+
+    getContextRegistryForView: function (viewID) {
+        return this.get(viewID).getContextRegistry();
+    },
+
+    setContextForChildView: function (viewID, childViewID, serializedChild) {
+        this.getContextRegistryForView(viewID)
+            .set(childViewID, serializedChild);
+    },
+
+    emptyViewContextRegistry: function (viewID) {
+        this.getContextRegistryForView(viewID)
+            .empty();
+    }
+});
+
+var ViewRegistryItem = wig.ViewRegistryItem = Class.extend({
+
+    constructor: function (view, parentView) {
+        this.view = view;
+        this.parent = (parentView && parentView.getID());
+        this.children = [];
+        this.customEvents = {};
+        this.contextRegistry = new Registry();
+    },
+
+    getCustomEvents: function () {
+        return this.customEvents;
+    },
+
+    getContextRegistry: function () {
+        return this.contextRegistry;
+    }
+
+});
+
 /**
  * Merges all argument objects into the first one.
  * @param   {object} obj
@@ -1005,14 +1070,16 @@ wig.init = function () {
     env.insurer = new Insurer();
     env.compiler = new Compiler();
     env.selection = new Selection(env.dom);
+    env.viewRegistry = new ViewRegistry();
 
     env.viewManager = new ViewManager(
-        View.Registry, env.dom, env.selection);
-
-    env.viewHelper = new ViewHelper(env.viewManager);
+        env.viewRegistry, env.dom, env.selection);
 
     env.uiEventProxy = new UIEventProxy(
         env.dom, env.viewManager);
+
+    env.viewHelper = new ViewHelper(env.viewRegistry,
+        env.viewManager, env.uiEventProxy, env.dom, env.insurer);
 };
 
 /**
@@ -1045,7 +1112,7 @@ var View = wig.View = Class.extend({
         context = (context || {});
         // assign the ID and register the View
         this._ID = (context.id || generateID('v'));
-        View.registerView(this);
+        env.viewRegistry.registerView(this);
 
         this.css      = (context.css || '');
         this.node     = (context.node || document.createElement(this.tagName));
@@ -1169,7 +1236,7 @@ var View = wig.View = Class.extend({
      */
     addView: function (ViewClass, childOptions) {
         var parentID = this.getID(),
-            contextRegistry = View.Registry.get(parentID).contextRegistry,
+            contextRegistry = env.viewRegistry.getContextRegistryForView(parentID),
             oldChildContext, newChildContext,
             options, childID, childView;
         // resolve arguments
@@ -1242,7 +1309,7 @@ var View = wig.View = Class.extend({
      */
     delegate: function (type, selector) {
         var viewID = this.getID(),
-            customEvents = View.Registry.get(viewID).customEvents,
+            customEvents = env.viewRegistry.getCustomEventsForView(viewID),
             node;
 
         if (!customEvents[type]) {
@@ -1292,36 +1359,6 @@ var View = wig.View = Class.extend({
 
     // Method will be executed to create the View structure within the current View.
     render: NoOp
-}, {
-
-    Registry: new Registry(),
-
-    /**
-     * Registers a (child) View instance in the ViewRegistry.
-     * If parentView is specified, parent View's ID will be mapped against the child View's ID.
-     * @param childView
-     * @param parentView
-     */
-    registerView: function (childView, parentView) {
-        var viewID = childView.getID();
-
-        View.Registry.set(viewID, {
-            contextRegistry: new Registry(),
-            customEvents: {},
-            children: [],
-            parent: (parentView && parentView.getID()),
-            view: childView
-        });
-    },
-
-    removeView: function (view) {
-        if (typeof view !== 'string') {
-            view = view.getID();
-        }
-
-        View.Registry.get(view).contextRegistry.empty();
-        View.Registry.unset(view);
-    }
 });
 
 View.extend = function (proto, statik) {

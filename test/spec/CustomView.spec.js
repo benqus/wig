@@ -11,7 +11,7 @@ describe('View - custom', function () {
 
     afterEach(function () {
         domFixture.innerHTML = '';
-        wig.View.Registry.empty();
+        wig.env.viewRegistry.empty();
     });
 
     it('uses custom tagName', function () {
