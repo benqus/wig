@@ -148,6 +148,9 @@ var ViewHelper = wig.ViewHelper = Class.extend({
             env.insurer.is.defined(
                 view[prop], '[' + prop + '] is already defined on the View instance!');
 
+            env.insurer.is.notDefined(context[prop],
+                'View expects "' + prop + '" to be defined on the context!');
+
             view[prop] = context[prop];
             delete context[prop];
         }
