@@ -186,7 +186,8 @@ var ViewHelper = module.ViewHelper = Class.extend({
 
     initialize: function (view) {
         var dataset = {},
-            classes = [view.className];
+            classes = [view.className],
+            attributes = view.getAttributes();
         // data attributes
         dataset[DATA_ATTRIBUTE] = view.getID();
         // add custom css
@@ -194,7 +195,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
             classes.push(view.css);
         }
         // assign classes and data context
-        this.DOM.initNode(view.getNode(), classes, dataset);
+        this.DOM.initNode(view.getNode(), classes, attributes, dataset);
         // apply event listeners
         Object.keys(view.events).forEach(view.listenFor, view);
         // initialize children

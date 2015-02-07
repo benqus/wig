@@ -2,7 +2,7 @@ describe("Compiler", function () {
     'use strict';
 
     var assert = chai.assert;
-    var Compiler = new wig.Compiler();
+    var Compiler = new wig.module.Compiler();
 
     afterEach(function () {
         Compiler.disposeMarkups();

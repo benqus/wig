@@ -177,6 +177,22 @@ describe('View - custom', function () {
         assert.equal(view.getNode(), null);
     });
 
+    it('View#getAttributes', function () {
+        var CustomView = View.extend({
+                tagName: 'button',
+                getAttributes: function () {
+                    return {
+                        disabled: 'disabled',
+                        a: 'a'
+                    };
+                }
+            }),
+            view = new CustomView();
+
+        assert.ok(view.getNode().disabled);
+        assert.equal(view.getNode().a, 'a');
+    });
+
     it('View updates with new context attributes', function () {
         var TestView = View.extend({
                 defaults: {

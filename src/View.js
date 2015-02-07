@@ -243,6 +243,14 @@ var View = wig.View = Class.extend({
     },
 
     /**
+     * Returns additional, logic based attributes for the View's node.
+     * @returns {string}
+     */
+    getAttributes: function () {
+        return {};
+    },
+
+    /**
      * Method contains logic to parse the new context for the View.
      * @returns {string}
      */
