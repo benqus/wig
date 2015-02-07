@@ -1,13 +1,12 @@
 // helper module to provide privacy on the public View interface
 var ViewHelper = module.ViewHelper = Class.extend({
 
-    constructor: function (viewRegistry, viewManager, uiEventProxy, dom, insurer) {
+    constructor: function (viewManager, uiEventProxy, dom, insurer) {
         Class.apply(this, arguments);
 
         this.DOM = dom;
         this.Insurer = insurer;
         this.ViewManager = viewManager;
-        this.ViewRegistry = viewRegistry;
         this.UIEventProxy = uiEventProxy;
     },
 
@@ -18,9 +17,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
      */
     createChildView: function (view, ViewClass, options) {
         var childView = new ViewClass(options);
-        this.ViewRegistry.registerView(childView, view);
-        this.ViewManager.getChildViews(view.getID())
-            .push(childView.getID());
+        this.ViewManager.registerChildForView(view, childView);
         return childView;
     },
 
@@ -105,13 +102,10 @@ var ViewHelper = module.ViewHelper = Class.extend({
             parentNode.removeChild(node);
         }
 
-        this.ViewManager.getChildViews(view.getID())
-            .forEach(view.removeView, view);
+        this.ViewManager.emptyView(view);
 
         node.innerHTML = '';
         view.node = null;
-
-        this.ViewRegistry.removeView(view);
     },
 
     notifyAttach: function (view) {
@@ -159,11 +153,8 @@ var ViewHelper = module.ViewHelper = Class.extend({
     },
 
     _serializeAndRemoveView: function (view, childViewID) {
-        var childView = view.getView(childViewID),
-            serializedChild = this.serialize(childView);
-
-        this.ViewRegistry
-            .setContextForChildView(view.getID(), childViewID, serializedChild);
+        this.ViewManager
+            .serializeChildForView(view, childViewID);
 
         view.removeView(childViewID);
     },
@@ -171,9 +162,8 @@ var ViewHelper = module.ViewHelper = Class.extend({
     _emptyAndPreserveChildContext: function (view) {
         var viewID = view.getID(),
             children = this.ViewManager.getChildViews(viewID);
-        // empty child context registry
-        this.ViewRegistry
-            .emptyViewContextRegistry(viewID);
+        this.ViewManager
+            .emptyContextRegistryForView(viewID);
 
         while (children.length > 0) {
             // method below will shift children out form the array
@@ -250,7 +240,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
      */
     undelegateType: function (view, type) {
         var viewID = view.getID(),
-            customEvents = this.ViewRegistry.getCustomEventsForView(viewID),
+            customEvents = this.ViewManager.getCustomEventsForView(viewID),
             selectors = customEvents[type],
             l = selectors.length,
             node;
@@ -266,7 +256,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
      */
     undelegateAll: function (view) {
         var viewID = view.getID(),
-            customEvents = this.ViewRegistry.getCustomEventsForView(viewID);
+            customEvents = this.ViewManager.getCustomEventsForView(viewID);
 
         Object.keys(customEvents).forEach(
             this.undelegateType.bind(this, view));

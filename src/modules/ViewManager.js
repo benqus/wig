@@ -114,5 +114,36 @@ var ViewManager = module.ViewManager = Class.extend({
             return superClassName + ' ' + className;
         }
         return superClassName;
+    },
+
+    getCustomEventsForView: function (viewID) {
+        return this.ViewRegistry.getCustomEventsForView(viewID);
+    },
+
+    registerChildForView: function (view, childView) {
+        this.ViewRegistry.registerView(childView, view);
+        this.getChildViews(view.getID())
+            .push(childView.getID());
+    },
+
+    serializeChildForView: function (view, childViewID) {
+        var childView = view.getView(childViewID),
+            serializedChild = env.viewHelper.serialize(childView);
+
+        this.ViewRegistry
+            .setContextForChildView(view.getID(), childViewID, serializedChild);
+    },
+
+    emptyContextRegistryForView: function (viewID) {
+        // empty child context registry
+        this.ViewRegistry
+            .emptyViewContextRegistry(viewID);
+    },
+
+    emptyView: function (view) {
+        this.getChildViews(view.getID())
+            .forEach(view.removeView, view);
+
+        this.ViewRegistry.removeView(view);
     }
 });

@@ -13,6 +13,6 @@ wig.env.init = function () {
     this.uiEventProxy = new UIEventProxy(
         this.dom, this.viewManager);
 
-    this.viewHelper = new ViewHelper(this.viewRegistry,
-        this.viewManager, this.uiEventProxy, this.dom, this.insurer);
+    this.viewHelper = new ViewHelper(this.viewManager,
+        this.uiEventProxy, this.dom, this.insurer);
 };
