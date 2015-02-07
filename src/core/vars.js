@@ -25,4 +25,4 @@ var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
 
 var arrayIndexOf = Array.prototype.indexOf;
 
-wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
+env.DATA_ATTRIBUTE = DATA_ATTRIBUTE;

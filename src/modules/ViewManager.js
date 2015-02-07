@@ -1,4 +1,4 @@
-var ViewManager = wig.ViewManager = Class.extend({
+var ViewManager = module.ViewManager = Class.extend({
 
     constructor: function (ViewRegistry, DOM, Selection) {
         this.DOM = DOM;
@@ -37,7 +37,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             selector = env.viewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
-        return api.getElement(rootNode, selector);
+        return env.getElement(rootNode, selector);
     },
 
     compileTemplate: function (view) {
@@ -52,7 +52,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             template = template.join('');
         }
 
-        return api.compile(template, context);
+        return env.compile(template, context);
     },
 
     updateView: function (view) {

@@ -1,4 +1,4 @@
-var ViewRegistryItem = wig.ViewRegistryItem = Class.extend({
+var ViewRegistryItem = module.ViewRegistryItem = Class.extend({
 
     constructor: function (view, parentView) {
         this.view = view;

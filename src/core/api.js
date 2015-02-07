@@ -2,7 +2,7 @@
  * @namespace
  * user overrides to introduce backwards compatibility or custom templating
  */
-var api = wig.api = {
+extend(env, {
 
     /**
      * Method compiles a template with a context object.
@@ -35,4 +35,4 @@ var api = wig.api = {
     compile: function (template, context) {
         return env.compiler.compile(template, context);
     }
-};
+});

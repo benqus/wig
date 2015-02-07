@@ -1,7 +1,7 @@
 describe('UIEventProxy', function () {
 
     var assert = chai.assert,
-        UIEventProxy = wig.UIEventProxy;
+        UIEventProxy = wig.module.UIEventProxy;
 
     // fixtures
     var viewFixtureFactory = wig.test.viewFixtureFactory,
@@ -26,7 +26,7 @@ describe('UIEventProxy', function () {
         wig.env.uiEventProxy.listener(event);
 
         assert.ok(find.calledOnce);
-        assert.ok(find.calledWithExactly(target, 'data-' + wig.DATA_ATTRIBUTE));
+        assert.ok(find.calledWithExactly(target, 'data-' + wig.env.DATA_ATTRIBUTE));
 
         // restore and reset stubs
         find.restore();

@@ -2,7 +2,7 @@
  * @classdesc Provides a convenient API for a key-value pair store.
  * @class
  */
-var Registry = wig.Registry = Class.extend({
+var Registry = module.Registry = Class.extend({
 
     constructor: function () {
         this.root = {};

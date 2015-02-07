@@ -34,10 +34,8 @@ module.exports = function (grunt) {
                 src: [
                     './src/intro',
 
-                    './src/core/api.js',
                     './src/core/env.js',
-                    './src/core/vars.js',
-                    './src/core/Class.js',
+                    './src/core/**/*.js',
 
                     './src/modules/base/**/*.js',
                     './src/modules/**/*.js',

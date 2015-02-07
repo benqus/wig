@@ -4,8 +4,6 @@
  * @param   {string} prefix
  * @returns {string}
  */
-function generateID(prefix) {
+env.generateID = function (prefix) {
     return ((prefix || 0) + Id++);
-}
-
-wig.generateID = generateID;
+};

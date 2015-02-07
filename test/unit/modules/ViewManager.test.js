@@ -46,7 +46,7 @@ describe('ViewManager', function () {
                 id = 'a',
                 div = document.createElement('div');
 
-            div.dataset[wig.DATA_ATTRIBUTE] = id;
+            div.dataset[wig.env.DATA_ATTRIBUTE] = id;
             wig.env.viewRegistry.set(id, {
                 view: view
             });
@@ -61,7 +61,7 @@ describe('ViewManager', function () {
                 view = wig.test.viewFixtureFactory(id),
                 div = document.createElement('div');
 
-            div.dataset[wig.DATA_ATTRIBUTE] = id;
+            div.dataset[wig.env.DATA_ATTRIBUTE] = id;
 
             wig.env.viewManager.destroyViewAtNode(div);
 

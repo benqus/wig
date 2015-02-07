@@ -2,7 +2,7 @@
  * @class
  * @classdesc Compiles templates and caches them.
  */
-var Compiler = wig.Compiler = Class.extend({
+var Compiler = module.Compiler = Class.extend({
 
     start: '{{',
     end: '}}',

@@ -1,4 +1,4 @@
-var Insurer = wig.Insurer = wig.Class.extend({
+var Insurer = module.Insurer = wig.Class.extend({
 
     is: {
         notDefined: function (arg, message) {

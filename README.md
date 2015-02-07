@@ -92,11 +92,11 @@ Wig comes with a built-in, minimal templating engine to access the View context 
 ### Customization:
 
 You can introduce a custom templating engine (such as Mustache or Handlebars), if you like,
-by overriding the `wig.api.compile` method.
+by overriding the `wig.env.compile` method.
 
 Example with Handlebars:
 
-    wig.api.compile = function (template, context) {
+    wig.env.compile = function (template, context) {
         return Handlebars.compile(template, context);
     };
 
@@ -104,19 +104,19 @@ Example with Handlebars:
 
 You are able to make wig backwards compatible with older browsers that don't support certain features.
 
-Bypass `document.activeElement` to preserve the focused element by overriding the `wig.api.getElement` method.
+Bypass `document.activeElement` to preserve the focused element by overriding the `wig.env.getElement` method.
 
 Example:
 
-    wig.api.getFocusedElement = function () {
+    wig.env.getFocusedElement = function () {
         // return the focused element with your logic
     };
 
-Bypass `Element.querySelector` to query for a DOM element with a CSS selector by overriding the `wig.api.getElement` method.
+Bypass `Element.querySelector` to query for a DOM element with a CSS selector by overriding the `wig.env.getElement` method.
 
 Example with jQuery:
 
     // for browsers < IE8
-    wig.api.getElement = function (parentNode, selector) {
+    wig.env.getElement = function (parentNode, selector) {
         return jQuery(selector, parentNode)[0];
     };

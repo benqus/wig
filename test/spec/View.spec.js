@@ -19,7 +19,7 @@ describe('View', function () {
 
         assert.equal(view.attached, false);
         assert.equal(view.node.constructor, HTMLDivElement);
-        assert.equal(view.node.dataset[wig.DATA_ATTRIBUTE], view.getID());
+        assert.equal(view.node.dataset[wig.env.DATA_ATTRIBUTE], view.getID());
         assert.deepEqual(view.node.getAttribute('class'), 'View');
     });
 

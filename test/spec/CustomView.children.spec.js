@@ -27,8 +27,8 @@ describe('CustomView with child Views', function () {
         wig.renderView(view, domFixture);
 
         assert(view.getNode().children.length, 2);
-        assert(view.getNode().children[0].dataset[wig.DATA_ATTRIBUTE], child1.getID());
-        assert(view.getNode().children[1].dataset[wig.DATA_ATTRIBUTE], child2.getID());
+        assert(view.getNode().children[0].dataset[wig.env.DATA_ATTRIBUTE], child1.getID());
+        assert(view.getNode().children[1].dataset[wig.env.DATA_ATTRIBUTE], child2.getID());
     });
 
     it('View renders (appends) child nodes in order into the template with "*"', function () {
@@ -51,8 +51,8 @@ describe('CustomView with child Views', function () {
         section = view.getNode().children[0];
 
         assert(section.children.length, 2);
-        assert(section.children[0].dataset[wig.DATA_ATTRIBUTE], child1.getID());
-        assert(section.children[1].dataset[wig.DATA_ATTRIBUTE], child2.getID());
+        assert(section.children[0].dataset[wig.env.DATA_ATTRIBUTE], child1.getID());
+        assert(section.children[1].dataset[wig.env.DATA_ATTRIBUTE], child2.getID());
     });
 
     it('View renders (appends) named child nodes in order into the template by their name', function () {
@@ -82,7 +82,7 @@ describe('CustomView with child Views', function () {
 
         wig.renderView(view, domFixture);
 
-        assert(view.getNode().querySelector('.first').firstChild.dataset[wig.DATA_ATTRIBUTE], child1.getID());
-        assert(view.getNode().querySelector('.second').firstChild.dataset[wig.DATA_ATTRIBUTE], child2.getID());
+        assert(view.getNode().querySelector('.first').firstChild.dataset[wig.env.DATA_ATTRIBUTE], child1.getID());
+        assert(view.getNode().querySelector('.second').firstChild.dataset[wig.env.DATA_ATTRIBUTE], child2.getID());
     });
 });

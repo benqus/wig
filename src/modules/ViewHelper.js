@@ -1,5 +1,5 @@
 // helper module to provide privacy on the public View interface
-var ViewHelper = wig.ViewHelper = Class.extend({
+var ViewHelper = module.ViewHelper = Class.extend({
 
     constructor: function (viewRegistry, viewManager, uiEventProxy, dom, insurer) {
         Class.apply(this, arguments);

@@ -1,4 +1,4 @@
-var DOM = wig.DOM = Class.extend({
+var DOM = module.DOM = Class.extend({
 
     initNode: function (element, classSet, dataSet) {
         var classes = classSet,

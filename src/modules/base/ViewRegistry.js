@@ -1,4 +1,4 @@
-var ViewRegistry = wig.ViewRegistry = Registry.extend({
+var ViewRegistry = module.ViewRegistry = Registry.extend({
 
     /**
      * Registers a (child) View instance in the ViewRegistry.

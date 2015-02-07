@@ -1,4 +1,4 @@
-var UIEventProxy = wig.UIEventProxy = Class.extend({
+var UIEventProxy = module.UIEventProxy = Class.extend({
 
     listeners: [],
 

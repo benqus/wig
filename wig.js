@@ -34,76 +34,8 @@
     }
 }(this, function (wig) {
 
-/*
- * @namespace
- * user overrides to introduce backwards compatibility or custom templating
- */
-var api = wig.api = {
-
-    /**
-     * Method compiles a template with a context object.
-     * If selector is empty or not defined it will return the original node
-     * Introduce custom DOM query by override.
-     * @param   {Element} element
-     * @param   {string}  selector
-     * @returns {Element}
-     */
-    getElement: function (element, selector) {
-        return (selector ? element.querySelector(selector) : element);
-    },
-
-    /**
-     * Method returns the currently active Element in the DOM.
-     * Override method for older browser support.
-     * @returns {Element}
-     */
-    getFocusedElement: function () {
-        return document.activeElement;
-    },
-
-    /**
-     * Method compiles a template with a context object.
-     * Introduce custom template compilation by override.
-     * @param   {string} template
-     * @param   {object} context
-     * @returns {String}
-     */
-    compile: function (template, context) {
-        return env.compiler.compile(template, context);
-    }
-};
-
 // wig internal environment
 var env = wig.env = {};
-
-/**
- * ID
- * @static
- * @private
- * @type {number}
- */
-var Id = 0;
-
-/**
- * noop
- * @static
- * @function
- */
-var NoOp = function () {};
-
-/**
- * Data attribute wig attaches the View#_ID to.
- * @static
- * @constant
- * @type {string}
- */
-var DATA_ATTRIBUTE = 'wig_view_id';
-
-var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
-
-var arrayIndexOf = Array.prototype.indexOf;
-
-wig.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
 
 var Class = wig.Class = function () {};
 
@@ -137,11 +69,81 @@ Class.extend = function (props, statik) {
     return Constructor;
 };
 
+/*
+ * @namespace
+ * user overrides to introduce backwards compatibility or custom templating
+ */
+extend(env, {
+
+    /**
+     * Method compiles a template with a context object.
+     * If selector is empty or not defined it will return the original node
+     * Introduce custom DOM query by override.
+     * @param   {Element} element
+     * @param   {string}  selector
+     * @returns {Element}
+     */
+    getElement: function (element, selector) {
+        return (selector ? element.querySelector(selector) : element);
+    },
+
+    /**
+     * Method returns the currently active Element in the DOM.
+     * Override method for older browser support.
+     * @returns {Element}
+     */
+    getFocusedElement: function () {
+        return document.activeElement;
+    },
+
+    /**
+     * Method compiles a template with a context object.
+     * Introduce custom template compilation by override.
+     * @param   {string} template
+     * @param   {object} context
+     * @returns {String}
+     */
+    compile: function (template, context) {
+        return env.compiler.compile(template, context);
+    }
+});
+
+var module = wig.module = {};
+
+/**
+ * ID
+ * @static
+ * @private
+ * @type {number}
+ */
+var Id = 0;
+
+/**
+ * noop
+ * @static
+ * @function
+ */
+var NoOp = function () {};
+
+/**
+ * Data attribute wig attaches the View#_ID to.
+ * @static
+ * @constant
+ * @type {string}
+ */
+var DATA_ATTRIBUTE = 'wig_view_id';
+
+var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
+
+var arrayIndexOf = Array.prototype.indexOf;
+
+env.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
+
 /**
  * @class
  * @classdesc Compiles templates and caches them.
  */
-var Compiler = wig.Compiler = Class.extend({
+var Compiler = module.Compiler = Class.extend({
 
     start: '{{',
     end: '}}',
@@ -272,7 +274,7 @@ var Compiler = wig.Compiler = Class.extend({
     }
 });
 
-var DOM = wig.DOM = Class.extend({
+var DOM = module.DOM = Class.extend({
 
     initNode: function (element, classSet, dataSet) {
         var classes = classSet,
@@ -325,7 +327,7 @@ var DOM = wig.DOM = Class.extend({
 
 });
 
-var Insurer = wig.Insurer = wig.Class.extend({
+var Insurer = module.Insurer = wig.Class.extend({
 
     is: {
         notDefined: function (arg, message) {
@@ -353,7 +355,7 @@ var Insurer = wig.Insurer = wig.Class.extend({
  * @classdesc Provides a convenient API for a key-value pair store.
  * @class
  */
-var Registry = wig.Registry = Class.extend({
+var Registry = module.Registry = Class.extend({
 
     constructor: function () {
         this.root = {};
@@ -411,7 +413,7 @@ var Registry = wig.Registry = Class.extend({
     }
 });
 
-var ViewRegistry = wig.ViewRegistry = Registry.extend({
+var ViewRegistry = module.ViewRegistry = Registry.extend({
 
     /**
      * Registers a (child) View instance in the ViewRegistry.
@@ -454,7 +456,7 @@ var ViewRegistry = wig.ViewRegistry = Registry.extend({
     }
 });
 
-var ViewRegistryItem = wig.ViewRegistryItem = Class.extend({
+var ViewRegistryItem = module.ViewRegistryItem = Class.extend({
 
     constructor: function (view, parentView) {
         this.view = view;
@@ -474,7 +476,7 @@ var ViewRegistryItem = wig.ViewRegistryItem = Class.extend({
 
 });
 
-var Selection = wig.Selection = Class.extend({
+var Selection = module.Selection = Class.extend({
 
     constructor: function (DOM) {
         this.DOM = DOM;
@@ -486,7 +488,7 @@ var Selection = wig.Selection = Class.extend({
     },
 
     preserveSelection: function () {
-        var node = wig.api.getFocusedElement();
+        var node = wig.env.getFocusedElement();
 
         this.start = node.selectionStart;
         this.end   = node.selectionEnd;
@@ -505,7 +507,7 @@ var Selection = wig.Selection = Class.extend({
     },
 
     preserveSelectionInView: function (updatingView) {
-        var node = wig.api.getFocusedElement(),
+        var node = wig.env.getFocusedElement(),
             focusedViewID = this.DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;
@@ -575,7 +577,7 @@ var Selection = wig.Selection = Class.extend({
     }
 });
 
-var UIEventProxy = wig.UIEventProxy = Class.extend({
+var UIEventProxy = module.UIEventProxy = Class.extend({
 
     listeners: [],
 
@@ -635,7 +637,7 @@ var UIEventProxy = wig.UIEventProxy = Class.extend({
 });
 
 // helper module to provide privacy on the public View interface
-var ViewHelper = wig.ViewHelper = Class.extend({
+var ViewHelper = module.ViewHelper = Class.extend({
 
     constructor: function (viewRegistry, viewManager, uiEventProxy, dom, insurer) {
         Class.apply(this, arguments);
@@ -909,7 +911,7 @@ var ViewHelper = wig.ViewHelper = Class.extend({
     }
 });
 
-var ViewManager = wig.ViewManager = Class.extend({
+var ViewManager = module.ViewManager = Class.extend({
 
     constructor: function (ViewRegistry, DOM, Selection) {
         this.DOM = DOM;
@@ -948,7 +950,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             selector = env.viewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
-        return api.getElement(rootNode, selector);
+        return env.getElement(rootNode, selector);
     },
 
     compileTemplate: function (view) {
@@ -963,7 +965,7 @@ var ViewManager = wig.ViewManager = Class.extend({
             template = template.join('');
         }
 
-        return api.compile(template, context);
+        return env.compile(template, context);
     },
 
     updateView: function (view) {
@@ -1058,11 +1060,9 @@ wig.extend = extend;
  * @param   {string} prefix
  * @returns {string}
  */
-function generateID(prefix) {
+env.generateID = function (prefix) {
     return ((prefix || 0) + Id++);
-}
-
-wig.generateID = generateID;
+};
 
 // initialize wig
 wig.env.init = function () {
@@ -1112,7 +1112,7 @@ var View = wig.View = Class.extend({
     constructor: function View(context) {
         context = (context || {});
         // assign the ID and register the View
-        this._ID = (context.id || generateID('v'));
+        this._ID = (context.id || env.generateID('v'));
         env.viewRegistry.registerView(this);
 
         this.css      = (context.css || '');
@@ -1200,7 +1200,7 @@ var View = wig.View = Class.extend({
         if (!selector) {
             return node;
         }
-        return api.getElement(node, selector);
+        return env.getElement(node, selector);
     },
 
     /**
@@ -1247,7 +1247,7 @@ var View = wig.View = Class.extend({
         }
         childOptions = (childOptions || {});
         // generate child id
-        childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
+        childID = parentID + '.' + (childOptions.id || env.generateID('v'));
         // apply previous context
         oldChildContext = contextRegistry.get(childID);
         newChildContext = extend({}, oldChildContext, childOptions);

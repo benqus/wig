@@ -10,7 +10,7 @@ var View = wig.View = Class.extend({
     constructor: function View(context) {
         context = (context || {});
         // assign the ID and register the View
-        this._ID = (context.id || generateID('v'));
+        this._ID = (context.id || env.generateID('v'));
         env.viewRegistry.registerView(this);
 
         this.css      = (context.css || '');
@@ -98,7 +98,7 @@ var View = wig.View = Class.extend({
         if (!selector) {
             return node;
         }
-        return api.getElement(node, selector);
+        return env.getElement(node, selector);
     },
 
     /**
@@ -145,7 +145,7 @@ var View = wig.View = Class.extend({
         }
         childOptions = (childOptions || {});
         // generate child id
-        childID = parentID + '.' + (childOptions.id || wig.generateID('v'));
+        childID = parentID + '.' + (childOptions.id || env.generateID('v'));
         // apply previous context
         oldChildContext = contextRegistry.get(childID);
         newChildContext = extend({}, oldChildContext, childOptions);
