@@ -1,5 +1,5 @@
 /**
-* Wig - 0.2.0
+* wig - 0.2.1
 */
 // Uses Node, AMD or browser globals to create a module. This example creates
 // a global even when AMD is used. This is useful if you have some scripts
