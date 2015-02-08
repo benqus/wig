@@ -1,9 +1,14 @@
 // helper module to provide privacy on the public View interface
 var ViewHelper = module.ViewHelper = Class.extend({
 
-    constructor: function (viewManager, uiEventProxy, dom, insurer) {
-        Class.apply(this, arguments);
+    constructor: function () {
+        this.DOM = undefined;
+        this.Insurer = undefined;
+        this.ViewManager = undefined;
+        this.UIEventProxy = undefined;
+    },
 
+    setEnv: function (viewManager, uiEventProxy, dom, insurer) {
         this.DOM = dom;
         this.Insurer = insurer;
         this.ViewManager = viewManager;

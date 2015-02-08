@@ -2,8 +2,9 @@ var UIEventProxy = module.UIEventProxy = Class.extend({
 
     listeners: [],
 
-    constructor: function (DOM, ViewManager) {
+    constructor: function (ViewHelper, DOM, ViewManager) {
         this.DOM = DOM;
+        this.ViewHelper = ViewHelper;
         this.ViewManager = ViewManager;
         this.listener = this.listener.bind(this);
     },
@@ -11,8 +12,8 @@ var UIEventProxy = module.UIEventProxy = Class.extend({
     findFirstViewAndFireEvent: function (event, view) {
         do {
             // find the first view that is listening to the same type of event
-            if (env.viewHelper.hasEvent(view, event)) {
-                env.viewHelper.fireDOMEvent(view, event);
+            if (this.ViewHelper.hasEvent(view, event)) {
+                this.ViewHelper.fireDOMEvent(view, event);
                 return;
             }
 

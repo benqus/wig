@@ -4,20 +4,24 @@ var Environment = wig.module.Environment = Class.extend({
 
     // initialize wig
     constructor: function () {
-        this.dom = new DOM();
-        this.insurer = new Insurer();
-        this.compiler = new Compiler();
+        this.dom          = new DOM();
+        this.insurer      = new Insurer();
+        this.compiler     = new Compiler();
+        this.selection    = new Selection(this.dom);
+        this.viewHelper   = new ViewHelper();
         this.viewRegistry = new ViewRegistry();
 
-        this.selection = new Selection(this.dom);
-
-        this.viewManager = new ViewManager(
+        this.viewManager = new ViewManager(this.viewHelper,
             this.viewRegistry, this.dom, this.selection);
 
         this.uiEventProxy = new UIEventProxy(
-            this.dom, this.viewManager);
+            this.viewHelper, this.dom, this.viewManager);
 
-        this.viewHelper = new ViewHelper(this.viewManager,
+        this.initialize();
+    },
+
+    initialize: function () {
+        this.viewHelper.setEnv(this.viewManager,
             this.uiEventProxy, this.dom, this.insurer);
     },
 

@@ -288,20 +288,24 @@ var Environment = wig.module.Environment = Class.extend({
 
     // initialize wig
     constructor: function () {
-        this.dom = new DOM();
-        this.insurer = new Insurer();
-        this.compiler = new Compiler();
+        this.dom          = new DOM();
+        this.insurer      = new Insurer();
+        this.compiler     = new Compiler();
+        this.selection    = new Selection(this.dom);
+        this.viewHelper   = new ViewHelper();
         this.viewRegistry = new ViewRegistry();
 
-        this.selection = new Selection(this.dom);
-
-        this.viewManager = new ViewManager(
+        this.viewManager = new ViewManager(this.viewHelper,
             this.viewRegistry, this.dom, this.selection);
 
         this.uiEventProxy = new UIEventProxy(
-            this.dom, this.viewManager);
+            this.viewHelper, this.dom, this.viewManager);
 
-        this.viewHelper = new ViewHelper(this.viewManager,
+        this.initialize();
+    },
+
+    initialize: function () {
+        this.viewHelper.setEnv(this.viewManager,
             this.uiEventProxy, this.dom, this.insurer);
     },
 
@@ -570,8 +574,9 @@ var UIEventProxy = module.UIEventProxy = Class.extend({
 
     listeners: [],
 
-    constructor: function (DOM, ViewManager) {
+    constructor: function (ViewHelper, DOM, ViewManager) {
         this.DOM = DOM;
+        this.ViewHelper = ViewHelper;
         this.ViewManager = ViewManager;
         this.listener = this.listener.bind(this);
     },
@@ -579,8 +584,8 @@ var UIEventProxy = module.UIEventProxy = Class.extend({
     findFirstViewAndFireEvent: function (event, view) {
         do {
             // find the first view that is listening to the same type of event
-            if (env.viewHelper.hasEvent(view, event)) {
-                env.viewHelper.fireDOMEvent(view, event);
+            if (this.ViewHelper.hasEvent(view, event)) {
+                this.ViewHelper.fireDOMEvent(view, event);
                 return;
             }
 
@@ -628,9 +633,14 @@ var UIEventProxy = module.UIEventProxy = Class.extend({
 // helper module to provide privacy on the public View interface
 var ViewHelper = module.ViewHelper = Class.extend({
 
-    constructor: function (viewManager, uiEventProxy, dom, insurer) {
-        Class.apply(this, arguments);
+    constructor: function () {
+        this.DOM = undefined;
+        this.Insurer = undefined;
+        this.ViewManager = undefined;
+        this.UIEventProxy = undefined;
+    },
 
+    setEnv: function (viewManager, uiEventProxy, dom, insurer) {
         this.DOM = dom;
         this.Insurer = insurer;
         this.ViewManager = viewManager;
@@ -893,9 +903,10 @@ var ViewHelper = module.ViewHelper = Class.extend({
 
 var ViewManager = module.ViewManager = Class.extend({
 
-    constructor: function (ViewRegistry, DOM, Selection) {
+    constructor: function (ViewHelper, ViewRegistry, DOM, Selection) {
         this.DOM = DOM;
         this.Selection = Selection;
+        this.ViewHelper = ViewHelper;
         this.ViewRegistry = ViewRegistry;
     },
 
@@ -927,7 +938,7 @@ var ViewManager = module.ViewManager = Class.extend({
 
     getRootNodeMapping: function (parentView, childView) {
         var viewID = childView.getID(),
-            selector = env.viewHelper.getSelectorForChild(parentView, viewID),
+            selector = this.ViewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
         return wig.getElement(rootNode, selector);
@@ -935,7 +946,7 @@ var ViewManager = module.ViewManager = Class.extend({
 
     compileTemplate: function (view) {
         var template = view.template,
-            context = env.viewHelper.serialize(view);
+            context = this.ViewHelper.serialize(view);
 
         if (typeof template === 'function') {
             return view.template(context);
@@ -954,7 +965,7 @@ var ViewManager = module.ViewManager = Class.extend({
             rootNode = childNode.parentNode,
             childNodeIndex;
 
-        env.viewHelper.undelegateAll(view);
+        this.ViewHelper.undelegateAll(view);
 
         this.Selection.preserveSelectionInView(view);
 
@@ -968,7 +979,7 @@ var ViewManager = module.ViewManager = Class.extend({
             rootNode.removeChild(childNode);
         }
 
-        env.viewHelper.paint(view);
+        this.ViewHelper.paint(view);
 
         this.DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
         this.Selection.restoreSelectionInView(view);
@@ -976,12 +987,12 @@ var ViewManager = module.ViewManager = Class.extend({
 
     notifyViewAboutAttach: function (viewID) {
         var view = this.getView(viewID);
-        env.viewHelper.notifyAttach(view);
+        this.ViewHelper.notifyAttach(view);
     },
 
     notifyViewAboutDetach: function (viewID) {
         var view = this.getView(viewID);
-        env.viewHelper.notifyDetach(view);
+        this.ViewHelper.notifyDetach(view);
     },
 
     removeViewFromParent: function (view) {
@@ -991,7 +1002,7 @@ var ViewManager = module.ViewManager = Class.extend({
         if (parentView) {
             parentView.removeView(childViewID);
         } else {
-            env.viewHelper.destroy(view);
+            this.ViewHelper.destroy(view);
         }
     },
 
@@ -1021,7 +1032,7 @@ var ViewManager = module.ViewManager = Class.extend({
 
     serializeChildForView: function (view, childViewID) {
         var childView = view.getView(childViewID),
-            serializedChild = env.viewHelper.serialize(childView);
+            serializedChild = this.ViewHelper.serialize(childView);
 
         this.ViewRegistry
             .setContextForChildView(view.getID(), childViewID, serializedChild);
