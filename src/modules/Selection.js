@@ -86,7 +86,7 @@ var Selection = module.Selection = Class.extend({
                 } while (path.length !== 0);
             }
 
-            // restore selection if node is an editable element
+            // restore Selection if node is an editable element
             try {
                 this.restoreSelection(node);
             } catch (e) {}

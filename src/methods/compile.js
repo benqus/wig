@@ -6,5 +6,5 @@
  * @returns {String}
  */
 wig.compile = function (template, context) {
-    return env.compiler.compile(template, context);
+    return env.Compiler.compile(template, context);
 };
