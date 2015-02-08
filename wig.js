@@ -1,5 +1,5 @@
 /**
-* wig - 0.2.1
+* wigjs - 0.2.1
 */
 // Uses Node, AMD or browser globals to create a module. This example creates
 // a global even when AMD is used. This is useful if you have some scripts
@@ -34,8 +34,32 @@
     }
 }(this, function (wig) {
 
-// wig internal environment
-var env = wig.env = {};
+/**
+ * ID
+ * @static
+ * @private
+ * @type {number}
+ */
+var Id = 0;
+
+/**
+ * noop
+ * @static
+ * @function
+ */
+var NoOp = function () {};
+
+/**
+ * Data attribute wig attaches the View#_ID to.
+ * @static
+ * @constant
+ * @type {string}
+ */
+var DATA_ATTRIBUTE = 'wig_view_id';
+
+var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
+
+var arrayIndexOf = Array.prototype.indexOf;
 
 var Class = wig.Class = function () {};
 
@@ -69,75 +93,7 @@ Class.extend = function (props, statik) {
     return Constructor;
 };
 
-/*
- * @namespace
- * user overrides to introduce backwards compatibility or custom templating
- */
-extend(env, {
-
-    /**
-     * Method compiles a template with a context object.
-     * If selector is empty or not defined it will return the original node
-     * Introduce custom DOM query by override.
-     * @param   {Element} element
-     * @param   {string}  selector
-     * @returns {Element}
-     */
-    getElement: function (element, selector) {
-        return (selector ? element.querySelector(selector) : element);
-    },
-
-    /**
-     * Method returns the currently active Element in the DOM.
-     * Override method for older browser support.
-     * @returns {Element}
-     */
-    getFocusedElement: function () {
-        return document.activeElement;
-    },
-
-    /**
-     * Method compiles a template with a context object.
-     * Introduce custom template compilation by override.
-     * @param   {string} template
-     * @param   {object} context
-     * @returns {String}
-     */
-    compile: function (template, context) {
-        return env.compiler.compile(template, context);
-    }
-});
-
 var module = wig.module = {};
-
-/**
- * ID
- * @static
- * @private
- * @type {number}
- */
-var Id = 0;
-
-/**
- * noop
- * @static
- * @function
- */
-var NoOp = function () {};
-
-/**
- * Data attribute wig attaches the View#_ID to.
- * @static
- * @constant
- * @type {string}
- */
-var DATA_ATTRIBUTE = 'wig_view_id';
-
-var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
-
-var arrayIndexOf = Array.prototype.indexOf;
-
-env.DATA_ATTRIBUTE = DATA_ATTRIBUTE;
 
 /**
  * @class
@@ -326,6 +282,40 @@ var DOM = module.DOM = Class.extend({
 
 });
 
+var Environment = wig.module.Environment = Class.extend({
+    // wig View data attribute
+    DATA_ATTRIBUTE: DATA_ATTRIBUTE,
+
+    // initialize wig
+    constructor: function () {
+        this.dom = new DOM();
+        this.insurer = new Insurer();
+        this.compiler = new Compiler();
+        this.viewRegistry = new ViewRegistry();
+
+        this.selection = new Selection(this.dom);
+
+        this.viewManager = new ViewManager(
+            this.viewRegistry, this.dom, this.selection);
+
+        this.uiEventProxy = new UIEventProxy(
+            this.dom, this.viewManager);
+
+        this.viewHelper = new ViewHelper(this.viewManager,
+            this.uiEventProxy, this.dom, this.insurer);
+    },
+
+    /**
+     * Generates a new unique string based on the
+     * provided prefix and the latest Id.
+     * @param   {string} prefix
+     * @returns {string}
+     */
+    generateID :function (prefix) {
+        return ((prefix || 0) + Id++);
+    }
+});
+
 var Insurer = module.Insurer = wig.Class.extend({
 
     is: {
@@ -487,7 +477,7 @@ var Selection = module.Selection = Class.extend({
     },
 
     preserveSelection: function () {
-        var node = wig.env.getFocusedElement();
+        var node = wig.getFocusedElement();
 
         this.start = node.selectionStart;
         this.end   = node.selectionEnd;
@@ -506,7 +496,7 @@ var Selection = module.Selection = Class.extend({
     },
 
     preserveSelectionInView: function (updatingView) {
-        var node = wig.env.getFocusedElement(),
+        var node = wig.getFocusedElement(),
             focusedViewID = this.DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;
@@ -940,7 +930,7 @@ var ViewManager = module.ViewManager = Class.extend({
             selector = env.viewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
-        return env.getElement(rootNode, selector);
+        return wig.getElement(rootNode, selector);
     },
 
     compileTemplate: function (view) {
@@ -955,7 +945,7 @@ var ViewManager = module.ViewManager = Class.extend({
             template = template.join('');
         }
 
-        return env.compile(template, context);
+        return wig.compile(template, context);
     },
 
     updateView: function (view) {
@@ -1052,6 +1042,17 @@ var ViewManager = module.ViewManager = Class.extend({
 });
 
 /**
+ * Method compiles a template with a context object.
+ * Introduce custom template compilation by override.
+ * @param   {string} template
+ * @param   {object} context
+ * @returns {String}
+ */
+wig.compile = function (template, context) {
+    return env.compiler.compile(template, context);
+};
+
+/**
  * Merges all argument objects into the first one.
  * @param   {object} obj
  * @returns {object}
@@ -1076,32 +1077,24 @@ function extend(obj) {
 wig.extend = extend;
 
 /**
- * Generates a new unique string based on the
- * provided prefix and the latest Id.
- * @param   {string} prefix
- * @returns {string}
+ * Method compiles a template with a context object.
+ * If selector is empty or not defined it will return the original node
+ * Introduce custom DOM query by override.
+ * @param   {Element} element
+ * @param   {string}  selector
+ * @returns {Element}
  */
-env.generateID = function (prefix) {
-    return ((prefix || 0) + Id++);
+wig.getElement = function (element, selector) {
+    return (selector ? element.querySelector(selector) : element);
 };
 
-// initialize wig
-wig.env.init = function () {
-    this.dom = new DOM();
-    this.insurer = new Insurer();
-    this.compiler = new Compiler();
-    this.viewRegistry = new ViewRegistry();
-
-    this.selection = new Selection(this.dom);
-
-    this.viewManager = new ViewManager(
-        this.viewRegistry, this.dom, this.selection);
-
-    this.uiEventProxy = new UIEventProxy(
-        this.dom, this.viewManager);
-
-    this.viewHelper = new ViewHelper(this.viewManager,
-        this.uiEventProxy, this.dom, this.insurer);
+/**
+ * Method returns the currently active Element in the DOM.
+ * Override method for older browser support.
+ * @returns {Element}
+ */
+wig.getFocusedElement = function () {
+    return document.activeElement;
 };
 
 /**
@@ -1221,7 +1214,7 @@ var View = wig.View = Class.extend({
         if (!selector) {
             return node;
         }
-        return env.getElement(node, selector);
+        return wig.getElement(node, selector);
     },
 
     /**
@@ -1409,7 +1402,7 @@ View.add = function (options, parentView) {
     return parentView.addView(this, options);
 };
 
-    wig.env.init();
+    var env = wig.env = new Environment();
 
     // Just return a value to define the module export.
     // This example returns an object, but the module
