@@ -11,7 +11,7 @@ describe('View', function () {
 
     afterEach(function () {
         domFixture.innerHTML = '';
-        wig.env.viewRegistry.empty();
+        wig.env.ViewRegistry.empty();
     });
 
     it('Simple View instance initializes for a DOM node', function () {

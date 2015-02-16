@@ -1,48 +1,27 @@
 var ViewManager = module.ViewManager = Class.extend({
 
-    constructor: function (ViewRegistry, DOM, Selection) {
+    constructor: function (ViewHelper, ViewRegistry, DOM, Selection) {
         this.DOM = DOM;
         this.Selection = Selection;
+        this.ViewHelper = ViewHelper;
         this.ViewRegistry = ViewRegistry;
     },
 
-    getView: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.view);
-    },
-
-    getParent: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.parent);
-    },
-
-    getChildViews: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.children);
-    },
-
-    getParentView: function (childView) {
-        var childID = childView.getID(),
-            parentID = this.getParent(childID);
-
-        return this.getView(parentID);
-    },
-
     getViewAtNode: function (node) {
-        return this.getView(node.dataset[DATA_ATTRIBUTE]);
+        return this.ViewRegistry.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
     getRootNodeMapping: function (parentView, childView) {
         var viewID = childView.getID(),
-            selector = env.viewHelper.getSelectorForChild(parentView, viewID),
+            selector = this.ViewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
-        return env.getElement(rootNode, selector);
+        return api.getElement(rootNode, selector);
     },
 
     compileTemplate: function (view) {
         var template = view.template,
-            context = env.viewHelper.serialize(view);
+            context = this.ViewHelper.serialize(view);
 
         if (typeof template === 'function') {
             return view.template(context);
@@ -52,16 +31,16 @@ var ViewManager = module.ViewManager = Class.extend({
             template = template.join('');
         }
 
-        return env.compile(template, context);
+        return api.compile(template, context);
     },
 
     updateView: function (view) {
         var childNode = view.getNode(),
-            parent = this.getParentView(view),
+            parent = this.ViewRegistry.getParentView(view),
             rootNode = childNode.parentNode,
             childNodeIndex;
 
-        env.viewHelper.undelegateAll(view);
+        this.ViewHelper.undelegateAll(view);
 
         this.Selection.preserveSelectionInView(view);
 
@@ -75,30 +54,30 @@ var ViewManager = module.ViewManager = Class.extend({
             rootNode.removeChild(childNode);
         }
 
-        env.viewHelper.paint(view);
+        this.ViewHelper.paint(view);
 
         this.DOM.attachNodeToParent(childNode, rootNode, childNodeIndex);
         this.Selection.restoreSelectionInView(view);
     },
 
     notifyViewAboutAttach: function (viewID) {
-        var view = this.getView(viewID);
-        env.viewHelper.notifyAttach(view);
+        var view = this.ViewRegistry.getView(viewID);
+        this.ViewHelper.notifyAttach(view);
     },
 
     notifyViewAboutDetach: function (viewID) {
-        var view = this.getView(viewID);
-        env.viewHelper.notifyDetach(view);
+        var view = this.ViewRegistry.getView(viewID);
+        this.ViewHelper.notifyDetach(view);
     },
 
     removeViewFromParent: function (view) {
-        var parentView = this.getParentView(view),
+        var parentView = this.ViewRegistry.getParentView(view),
             childViewID = view.getID();
 
         if (parentView) {
             parentView.removeView(childViewID);
         } else {
-            env.viewHelper.destroy(view);
+            this.ViewHelper.destroy(view);
         }
     },
 
@@ -122,13 +101,13 @@ var ViewManager = module.ViewManager = Class.extend({
 
     registerChildForView: function (view, childView) {
         this.ViewRegistry.registerView(childView, view);
-        this.getChildViews(view.getID())
+        this.ViewRegistry.getChildViews(view.getID())
             .push(childView.getID());
     },
 
     serializeChildForView: function (view, childViewID) {
         var childView = view.getView(childViewID),
-            serializedChild = env.viewHelper.serialize(childView);
+            serializedChild = this.ViewHelper.serialize(childView);
 
         this.ViewRegistry
             .setContextForChildView(view.getID(), childViewID, serializedChild);
@@ -141,7 +120,7 @@ var ViewManager = module.ViewManager = Class.extend({
     },
 
     emptyView: function (view) {
-        this.getChildViews(view.getID())
+        this.ViewRegistry.getChildViews(view.getID())
             .forEach(view.removeView, view);
 
         this.ViewRegistry.removeView(view);

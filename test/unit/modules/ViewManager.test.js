@@ -6,7 +6,7 @@ describe('ViewManager', function () {
     var viewFixtureFactory = wig.test.viewFixtureFactory;
 
     afterEach(function () {
-        wig.env.viewRegistry.empty();
+        wig.env.ViewRegistry.empty();
     });
 
     describe('getParentView', function () {
@@ -14,7 +14,7 @@ describe('ViewManager', function () {
             var viewId = 'a',
                 view = viewFixtureFactory(viewId);
 
-            assert.notOk(wig.env.viewManager.getParentView(view));
+            assert.notOk(wig.env.ViewRegistry.getParentView(view));
         });
 
         it('returns parent view', function () {
@@ -23,7 +23,7 @@ describe('ViewManager', function () {
                 parent = viewFixtureFactory(parentId),
                 child = viewFixtureFactory(childId, parentId);
 
-            assert.equal(wig.env.viewManager.getParentView(child), parent);
+            assert.equal(wig.env.ViewRegistry.getParentView(child), parent);
         });
     });
 
@@ -32,11 +32,11 @@ describe('ViewManager', function () {
             var id = 'a',
                 view = wig.test.viewFixtureFactory(id);
 
-            wig.env.viewRegistry.set(id, {
+            wig.env.ViewRegistry.set(id, {
                 view: view
             });
 
-            assert.equal(wig.env.viewManager.getView(id), view);
+            assert.equal(wig.env.ViewRegistry.getView(id), view);
         });
     });
 
@@ -47,11 +47,11 @@ describe('ViewManager', function () {
                 div = document.createElement('div');
 
             div.dataset[wig.env.DATA_ATTRIBUTE] = id;
-            wig.env.viewRegistry.set(id, {
+            wig.env.ViewRegistry.set(id, {
                 view: view
             });
 
-            assert.equal(wig.env.viewManager.getViewAtNode(div), view);
+            assert.equal(wig.env.ViewManager.getViewAtNode(div), view);
         });
     });
 
@@ -63,7 +63,7 @@ describe('ViewManager', function () {
 
             div.dataset[wig.env.DATA_ATTRIBUTE] = id;
 
-            wig.env.viewManager.destroyViewAtNode(div);
+            wig.env.ViewManager.destroyViewAtNode(div);
 
             assert.ok(view.remove.calledOnce);
         });

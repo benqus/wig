@@ -10,7 +10,7 @@ var Selection = module.Selection = Class.extend({
     },
 
     preserveSelection: function () {
-        var node = wig.env.getFocusedElement();
+        var node = api.getFocusedElement();
 
         this.start = node.selectionStart;
         this.end   = node.selectionEnd;
@@ -29,7 +29,7 @@ var Selection = module.Selection = Class.extend({
     },
 
     preserveSelectionInView: function (updatingView) {
-        var node = wig.env.getFocusedElement(),
+        var node = api.getFocusedElement(),
             focusedViewID = this.DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;
@@ -86,7 +86,7 @@ var Selection = module.Selection = Class.extend({
                 } while (path.length !== 0);
             }
 
-            // restore selection if node is an editable element
+            // restore Selection if node is an editable element
             try {
                 this.restoreSelection(node);
             } catch (e) {}

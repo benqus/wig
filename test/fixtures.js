@@ -29,7 +29,7 @@
                 }
             }
 
-            wig.env.viewRegistry.registerView(view, parent);
+            wig.env.ViewRegistry.registerView(view, parent);
 
             return view;
         },
@@ -51,7 +51,7 @@
         },
 
         findClosestViewNodeStubFactory: function (viewID) {
-            var stub = sinon.stub(wig.env.dom, 'findClosestViewNode');
+            var stub = sinon.stub(wig.env.Dom, 'findClosestViewNode');
                 stub.returns(viewID);
 
             return stub;

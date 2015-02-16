@@ -24,5 +24,3 @@ var DATA_ATTRIBUTE = 'wig_view_id';
 var VIEW_DATA_ATTRIBUTE = 'data-' + DATA_ATTRIBUTE;
 
 var arrayIndexOf = Array.prototype.indexOf;
-
-env.DATA_ATTRIBUTE = DATA_ATTRIBUTE;

@@ -1,6 +1,13 @@
 (function () {
     'use strict';
 
+    wig.setup({
+        // override
+        getElement: function (element, selector) {
+            return $(selector, element)[0];
+        }
+    });
+
     var DatePicker = wig.View.extend({
         tagName: 'div',
         className: 'DatePicker',

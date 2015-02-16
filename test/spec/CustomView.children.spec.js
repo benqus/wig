@@ -10,7 +10,7 @@ describe('CustomView with child Views', function () {
 
     afterEach(function () {
         domFixture.innerHTML = '';
-        wig.env.viewRegistry.empty();
+        wig.env.ViewRegistry.empty();
     });
 
     it('View renders (appends) child nodes in order into its own DOM node', function () {

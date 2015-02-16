@@ -7,8 +7,8 @@
 function renderView(view, node) {
     node.appendChild(view.getNode());
 
-    env.viewHelper.paint(view);
-    env.viewHelper.notifyAttach(view);
+    env.ViewHelper.paint(view);
+    env.ViewHelper.notifyAttach(view);
 
     return view;
 }
