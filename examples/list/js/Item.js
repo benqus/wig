@@ -4,10 +4,10 @@ App.Item = wig.View.extend({
     className: 'Item',
 
     template: [
-        '<span>',
+        '<label>',
             '<input type="checkbox" {{ checked }} />',
-        '</span>',
-        '<span>{{ title }}</span>'
+            '<span>{{ title }}</span>',
+        '</label>'
     ],
 
     events: {
