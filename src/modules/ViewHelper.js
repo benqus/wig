@@ -135,7 +135,11 @@ var ViewHelper = module.ViewHelper = Class.extend({
     },
 
     cleanupContext: function (view, context) {
+        if (!context) {
+            return;
+        }
         var expects = view.expects,
+            proto = Object.getPrototypeOf(view),// view.constructor.prototype
             prop,
             l;
         // remove default Wig specific properties
@@ -151,7 +155,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
         while (l--) {
             prop = expects[l];
             this.Insurer.is.defined(
-                view[prop], '[' + prop + '] is already defined on the View instance!');
+                proto[prop], '[' + prop + '] is already defined on the View instance!');
 
             view[prop] = context[prop];
             delete context[prop];
@@ -185,7 +189,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
 
     initializeWithContext: function (view, context) {
         // update default/initial context
-        this.cleanupContext(view, context);
+        //this.cleanupContext(view, context);
         view.set(context);
         this.initialize(view);
     },

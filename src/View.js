@@ -71,6 +71,7 @@ var View = wig.View = Class.extend({
      */
     set: function (newContext) {
         var overrides;
+        env.ViewHelper.cleanupContext(this, newContext);
         if (newContext && typeof newContext === 'object') {
             overrides = extend({}, this.defaults, this.context, newContext);
             extend(this.context, (this.parseContext(overrides) || overrides));

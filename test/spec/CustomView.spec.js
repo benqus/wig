@@ -80,7 +80,7 @@ describe('View - custom', function () {
         assert.equal(view.getNode().innerHTML, template.replace('{{ title }}', title));
     });
 
-    it('props are available on the View instance', function () {
+    it('expects are available on the View instance', function () {
         var expects = [
                 'a',
                 'b'
@@ -97,6 +97,19 @@ describe('View - custom', function () {
 
         assert.equal(view.a, a);
         assert.equal(view.b, b);
+    });
+
+    it('throws error if expectation is implemented on the prototype', function () {
+        var CustomView = View.extend({
+                expects: ['a'],
+                a: function () {}
+            });
+
+        assert.throws(function () {
+            var a = new CustomView({
+                a: 'a'
+            });
+        });
     });
 
     it('events are invoked on the View instance', function (done) {
@@ -213,6 +226,25 @@ describe('View - custom', function () {
         });
 
         assert.equal(view.getNode().innerHTML, 'cb');
+    });
+
+    it('View#set updates expectations', function () {
+        var a = 'a',
+            b = 'b',
+            TestView = View.extend({
+                expects: [ 'a' ]
+            }),
+            view = new TestView({
+                a: a
+            });
+
+        wig.renderView(view, domFixture);
+
+        view.set({
+            a: b
+        });
+
+        assert.equal(view.a, b);
     });
 
 });
