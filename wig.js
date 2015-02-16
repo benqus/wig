@@ -1,5 +1,5 @@
 /**
-* wigjs - 0.2.1
+* wigjs - 0.3.0
 */
 // Uses Node, AMD or browser globals to create a module. This example creates
 // a global even when AMD is used. This is useful if you have some scripts
@@ -857,11 +857,14 @@ var ViewHelper = module.ViewHelper = Class.extend({
 
         while (l--) {
             prop = expects[l];
-            this.Insurer.is.defined(
-                proto[prop], '[' + prop + '] is already defined on the View instance!');
+            // do not override if expectation is not defined
+            if (typeof context[prop] !== 'undefined') {
+                this.Insurer.is.defined(
+                    proto[prop], '[' + prop + '] is already defined on the View instance!');
 
-            view[prop] = context[prop];
-            delete context[prop];
+                view[prop] = context[prop];
+                delete context[prop];
+            }
         }
     },
 

@@ -154,11 +154,14 @@ var ViewHelper = module.ViewHelper = Class.extend({
 
         while (l--) {
             prop = expects[l];
-            this.Insurer.is.defined(
-                proto[prop], '[' + prop + '] is already defined on the View instance!');
+            // do not override if expectation is not defined
+            if (typeof context[prop] !== 'undefined') {
+                this.Insurer.is.defined(
+                    proto[prop], '[' + prop + '] is already defined on the View instance!');
 
-            view[prop] = context[prop];
-            delete context[prop];
+                view[prop] = context[prop];
+                delete context[prop];
+            }
         }
     },
 
