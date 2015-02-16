@@ -16,7 +16,7 @@ var ViewManager = module.ViewManager = Class.extend({
             selector = this.ViewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
-        return wig.getElement(rootNode, selector);
+        return api.getElement(rootNode, selector);
     },
 
     compileTemplate: function (view) {
@@ -31,7 +31,7 @@ var ViewManager = module.ViewManager = Class.extend({
             template = template.join('');
         }
 
-        return wig.compile(template, context);
+        return api.compile(template, context);
     },
 
     updateView: function (view) {

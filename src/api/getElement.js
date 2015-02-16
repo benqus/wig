@@ -1,11 +1,10 @@
 /**
- * Method compiles a template with a context object.
- * If selector is empty or not defined it will return the original node
+ * Method finds an element by a CSS selector.
  * Introduce custom DOM query by override.
  * @param   {Element} element
  * @param   {string}  selector
  * @returns {Element}
  */
-wig.getElement = function (element, selector) {
+api.getElement = function (element, selector) {
     return (selector ? element.querySelector(selector) : element);
 };

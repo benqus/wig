@@ -99,7 +99,7 @@ var View = wig.View = Class.extend({
         if (!selector) {
             return node;
         }
-        return wig.getElement(node, selector);
+        return api.getElement(node, selector);
     },
 
     /**

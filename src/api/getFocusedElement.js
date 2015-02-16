@@ -3,6 +3,6 @@
  * Override method for older browser support.
  * @returns {Element}
  */
-wig.getFocusedElement = function () {
+api.getFocusedElement = function () {
     return document.activeElement;
 };

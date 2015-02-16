@@ -49,7 +49,7 @@
                 }
             }
 
-            return wig.compile('<option value="{{ value }}">{{ name }}</option>', {
+            return wig.api.compile('<option value="{{ value }}">{{ name }}</option>', {
                 name: name,
                 value: value
             });

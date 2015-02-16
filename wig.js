@@ -93,6 +93,50 @@ Class.extend = function (props, statik) {
     return Constructor;
 };
 
+var api = wig.api = {};
+
+/**
+ * Method compiles a template with a context object.
+ * Introduce custom template compilation by override.
+ * @param   {string} template
+ * @param   {object} context
+ * @returns {String}
+ */
+api.compile = function (template, context) {
+    return env.Compiler.compile(template, context);
+};
+
+/**
+ * Method finds an element by a CSS selector.
+ * Introduce custom DOM query by override.
+ * @param   {Element} element
+ * @param   {string}  selector
+ * @returns {Element}
+ */
+api.getElement = function (element, selector) {
+    return (selector ? element.querySelector(selector) : element);
+};
+
+/**
+ * Method finds elements by a CSS selector.
+ * Introduce custom DOM query by override.
+ * @param   {Element} element
+ * @param   {string}  selector
+ * @returns {Element}
+ */
+api.getElements = function (element, selector) {
+    return (selector ? element.querySelectorAll(selector) : element);
+};
+
+/**
+ * Method returns the currently active Element in the DOM.
+ * Override method for older browser support.
+ * @returns {Element}
+ */
+api.getFocusedElement = function () {
+    return document.activeElement;
+};
+
 var module = wig.module = {};
 
 /**
@@ -508,7 +552,7 @@ var Selection = module.Selection = Class.extend({
     },
 
     preserveSelection: function () {
-        var node = wig.getFocusedElement();
+        var node = api.getFocusedElement();
 
         this.start = node.selectionStart;
         this.end   = node.selectionEnd;
@@ -527,7 +571,7 @@ var Selection = module.Selection = Class.extend({
     },
 
     preserveSelectionInView: function (updatingView) {
-        var node = wig.getFocusedElement(),
+        var node = api.getFocusedElement(),
             focusedViewID = this.DOM.findClosestViewNode(node, VIEW_DATA_ATTRIBUTE),
             updatingViewID = updatingView.getID(),
             viewNode;
@@ -951,7 +995,7 @@ var ViewManager = module.ViewManager = Class.extend({
             selector = this.ViewHelper.getSelectorForChild(parentView, viewID),
             rootNode = parentView.getNode();
 
-        return wig.getElement(rootNode, selector);
+        return api.getElement(rootNode, selector);
     },
 
     compileTemplate: function (view) {
@@ -966,7 +1010,7 @@ var ViewManager = module.ViewManager = Class.extend({
             template = template.join('');
         }
 
-        return wig.compile(template, context);
+        return api.compile(template, context);
     },
 
     updateView: function (view) {
@@ -1063,17 +1107,6 @@ var ViewManager = module.ViewManager = Class.extend({
 });
 
 /**
- * Method compiles a template with a context object.
- * Introduce custom template compilation by override.
- * @param   {string} template
- * @param   {object} context
- * @returns {String}
- */
-wig.compile = function (template, context) {
-    return env.Compiler.compile(template, context);
-};
-
-/**
  * Merges all argument objects into the first one.
  * @param   {object} obj
  * @returns {object}
@@ -1098,27 +1131,6 @@ function extend(obj) {
 wig.extend = extend;
 
 /**
- * Method compiles a template with a context object.
- * If selector is empty or not defined it will return the original node
- * Introduce custom DOM query by override.
- * @param   {Element} element
- * @param   {string}  selector
- * @returns {Element}
- */
-wig.getElement = function (element, selector) {
-    return (selector ? element.querySelector(selector) : element);
-};
-
-/**
- * Method returns the currently active Element in the DOM.
- * Override method for older browser support.
- * @returns {Element}
- */
-wig.getFocusedElement = function () {
-    return document.activeElement;
-};
-
-/**
  * Renders the provided View instance into a DOM node.
  * @param   {View}    view
  * @param   {Element} node
@@ -1134,6 +1146,14 @@ function renderView(view, node) {
 }
 
 wig.renderView = renderView;
+
+/**
+ * Setup method 
+ * @param config
+ */
+wig.setup = function (config) {
+    extend(api, config);
+};
 
 /**
  * @class
@@ -1236,7 +1256,7 @@ var View = wig.View = Class.extend({
         if (!selector) {
             return node;
         }
-        return wig.getElement(node, selector);
+        return api.getElement(node, selector);
     },
 
     /**
