@@ -299,13 +299,13 @@ var Environment = wig.module.Environment = Class.extend({
             this.ViewRegistry, this.Dom, this.Selection);
 
         this.UIEventProxy = new UIEventProxy(
-            this.ViewHelper, this.Dom, this.ViewManager);
+            this.ViewHelper, this.Dom, this.ViewRegistry);
 
         this.initialize();
     },
 
     initialize: function () {
-        this.ViewHelper.setEnv(this.ViewManager,
+        this.ViewHelper.setEnv(this.ViewManager, this.ViewRegistry,
             this.UIEventProxy, this.Dom, this.Insurer);
     },
 
@@ -407,6 +407,33 @@ var Registry = module.Registry = Class.extend({
 });
 
 var ViewRegistry = module.ViewRegistry = Registry.extend({
+
+    getView: function (id) {
+        var item = this.get(id);
+        return (item && item.view);
+    },
+
+    getParentID: function (id) {
+        var item = this.get(id);
+        return (item && item.parent);
+    },
+
+    getChildViews: function (id) {
+        var item = this.get(id);
+        return (item && item.children);
+    },
+
+    getParent: function (id) {
+        var item = this.get(id);
+        return (item && item.parent);
+    },
+
+    getParentView: function (childView) {
+        var childID = childView.getID(),
+            parentID = this.getParent(childID);
+
+        return this.getView(parentID);
+    },
 
     /**
      * Registers a (child) View instance in the ViewRegistry.
@@ -574,10 +601,10 @@ var UIEventProxy = module.UIEventProxy = Class.extend({
 
     listeners: [],
 
-    constructor: function (ViewHelper, DOM, ViewManager) {
+    constructor: function (ViewHelper, DOM, ViewRegistry) {
         this.DOM = DOM;
         this.ViewHelper = ViewHelper;
-        this.ViewManager = ViewManager;
+        this.ViewRegistry = ViewRegistry;
         this.listener = this.listener.bind(this);
     },
 
@@ -589,7 +616,7 @@ var UIEventProxy = module.UIEventProxy = Class.extend({
                 return;
             }
 
-            view = this.ViewManager.getParentView(view);
+            view = this.ViewRegistry.getParentView(view);
         } while (view);
     },
 
@@ -603,7 +630,7 @@ var UIEventProxy = module.UIEventProxy = Class.extend({
 
     listener: function (event) {
         var viewID = this.DOM.findClosestViewNode(event.target, VIEW_DATA_ATTRIBUTE),
-            view = this.ViewManager.getView(viewID);
+            view = this.ViewRegistry.getView(viewID);
 
         if (view) {
             return this.findFirstViewAndFireEvent(event, view);
@@ -640,10 +667,11 @@ var ViewHelper = module.ViewHelper = Class.extend({
         this.UIEventProxy = undefined;
     },
 
-    setEnv: function (viewManager, uiEventProxy, dom, insurer) {
+    setEnv: function (viewManager, ViewRegistry, uiEventProxy, dom, insurer) {
         this.DOM = dom;
         this.Insurer = insurer;
         this.ViewManager = viewManager;
+        this.ViewRegistry = ViewRegistry;
         this.UIEventProxy = uiEventProxy;
     },
 
@@ -662,13 +690,13 @@ var ViewHelper = module.ViewHelper = Class.extend({
      * @param {View} view
      */
     initializeChildren: function (view) {
-        var children = this.ViewManager.getChildViews(view.getID()),
+        var children = this.ViewRegistry.getChildViews(view.getID()),
             length = children.length,
             i = 0,
             childView;
 
         while (i < length) {
-            childView = this.ViewManager.getView(children[i]);
+            childView = this.ViewRegistry.getView(children[i]);
             childView.initialize();
             i += 1;
         }
@@ -690,13 +718,13 @@ var ViewHelper = module.ViewHelper = Class.extend({
      * @param {View}   view
      */
     paintChildren: function (view) {
-        var children = this.ViewManager.getChildViews(view.getID()),
+        var children = this.ViewRegistry.getChildViews(view.getID()),
             length = children.length,
             i = 0,
             childView;
 
         while (i < length) {
-            childView = this.ViewManager.getView(children[i]);
+            childView = this.ViewRegistry.getView(children[i]);
             this.ViewManager.updateView(childView);
             i += 1;
         }
@@ -751,7 +779,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
         view.attached = true;
         view.onAttach();
 
-        viewManager.getChildViews(view.getID()).forEach(
+        this.ViewRegistry.getChildViews(view.getID()).forEach(
             viewManager.notifyViewAboutAttach, viewManager);
     },
 
@@ -761,7 +789,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
         view.attached = false;
         view.onDetach();
 
-        viewManager.getChildViews(view.getID()).forEach(
+        this.ViewRegistry.getChildViews(view.getID()).forEach(
             viewManager.notifyViewAboutDetach, viewManager);
     },
 
@@ -798,7 +826,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
 
     _emptyAndPreserveChildContext: function (view) {
         var viewID = view.getID(),
-            children = this.ViewManager.getChildViews(viewID);
+            children = this.ViewRegistry.getChildViews(viewID);
         this.ViewManager
             .emptyContextRegistryForView(viewID);
 
@@ -910,30 +938,8 @@ var ViewManager = module.ViewManager = Class.extend({
         this.ViewRegistry = ViewRegistry;
     },
 
-    getView: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.view);
-    },
-
-    getParent: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.parent);
-    },
-
-    getChildViews: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.children);
-    },
-
-    getParentView: function (childView) {
-        var childID = childView.getID(),
-            parentID = this.getParent(childID);
-
-        return this.getView(parentID);
-    },
-
     getViewAtNode: function (node) {
-        return this.getView(node.dataset[DATA_ATTRIBUTE]);
+        return this.ViewRegistry.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
     getRootNodeMapping: function (parentView, childView) {
@@ -961,7 +967,7 @@ var ViewManager = module.ViewManager = Class.extend({
 
     updateView: function (view) {
         var childNode = view.getNode(),
-            parent = this.getParentView(view),
+            parent = this.ViewRegistry.getParentView(view),
             rootNode = childNode.parentNode,
             childNodeIndex;
 
@@ -986,17 +992,17 @@ var ViewManager = module.ViewManager = Class.extend({
     },
 
     notifyViewAboutAttach: function (viewID) {
-        var view = this.getView(viewID);
+        var view = this.ViewRegistry.getView(viewID);
         this.ViewHelper.notifyAttach(view);
     },
 
     notifyViewAboutDetach: function (viewID) {
-        var view = this.getView(viewID);
+        var view = this.ViewRegistry.getView(viewID);
         this.ViewHelper.notifyDetach(view);
     },
 
     removeViewFromParent: function (view) {
-        var parentView = this.getParentView(view),
+        var parentView = this.ViewRegistry.getParentView(view),
             childViewID = view.getID();
 
         if (parentView) {
@@ -1026,7 +1032,7 @@ var ViewManager = module.ViewManager = Class.extend({
 
     registerChildForView: function (view, childView) {
         this.ViewRegistry.registerView(childView, view);
-        this.getChildViews(view.getID())
+        this.ViewRegistry.getChildViews(view.getID())
             .push(childView.getID());
     },
 
@@ -1045,7 +1051,7 @@ var ViewManager = module.ViewManager = Class.extend({
     },
 
     emptyView: function (view) {
-        this.getChildViews(view.getID())
+        this.ViewRegistry.getChildViews(view.getID())
             .forEach(view.removeView, view);
 
         this.ViewRegistry.removeView(view);
@@ -1241,7 +1247,7 @@ var View = wig.View = Class.extend({
 
     // Removes (destroys) the children.
     empty: function () {
-        env.ViewManager.getChildViews(this.getID())
+        env.ViewRegistry.getChildViews(this.getID())
             .forEach(this.removeView, this);
     },
 
@@ -1293,7 +1299,7 @@ var View = wig.View = Class.extend({
      * @param {string|number} childViewID
      */
     getView: function (childViewID) {
-        var children = env.ViewManager.getChildViews(this.getID());
+        var children = env.ViewRegistry.getChildViews(this.getID());
         // if id is an array index instead of a child's ID
         if (typeof childViewID === 'number' && childViewID < children.length) {
             childViewID = children[childViewID];
@@ -1302,7 +1308,7 @@ var View = wig.View = Class.extend({
         if (children.indexOf(childViewID) === -1) {
             childViewID = this.getID() + '.' + childViewID;
         }
-        return env.ViewManager.getView(childViewID);
+        return env.ViewRegistry.getView(childViewID);
     },
 
     /**
@@ -1311,7 +1317,7 @@ var View = wig.View = Class.extend({
      */
     removeView: function (childViewID) {
         var childView = this.getView(childViewID),
-            children = env.ViewManager.getChildViews(this.getID()),
+            children = env.ViewRegistry.getChildViews(this.getID()),
             index;
 
         if (childView) {

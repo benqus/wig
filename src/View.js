@@ -114,7 +114,7 @@ var View = wig.View = Class.extend({
 
     // Removes (destroys) the children.
     empty: function () {
-        env.ViewManager.getChildViews(this.getID())
+        env.ViewRegistry.getChildViews(this.getID())
             .forEach(this.removeView, this);
     },
 
@@ -166,7 +166,7 @@ var View = wig.View = Class.extend({
      * @param {string|number} childViewID
      */
     getView: function (childViewID) {
-        var children = env.ViewManager.getChildViews(this.getID());
+        var children = env.ViewRegistry.getChildViews(this.getID());
         // if id is an array index instead of a child's ID
         if (typeof childViewID === 'number' && childViewID < children.length) {
             childViewID = children[childViewID];
@@ -175,7 +175,7 @@ var View = wig.View = Class.extend({
         if (children.indexOf(childViewID) === -1) {
             childViewID = this.getID() + '.' + childViewID;
         }
-        return env.ViewManager.getView(childViewID);
+        return env.ViewRegistry.getView(childViewID);
     },
 
     /**
@@ -184,7 +184,7 @@ var View = wig.View = Class.extend({
      */
     removeView: function (childViewID) {
         var childView = this.getView(childViewID),
-            children = env.ViewManager.getChildViews(this.getID()),
+            children = env.ViewRegistry.getChildViews(this.getID()),
             index;
 
         if (childView) {

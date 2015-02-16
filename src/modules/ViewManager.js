@@ -7,30 +7,8 @@ var ViewManager = module.ViewManager = Class.extend({
         this.ViewRegistry = ViewRegistry;
     },
 
-    getView: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.view);
-    },
-
-    getParent: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.parent);
-    },
-
-    getChildViews: function (id) {
-        var item = this.ViewRegistry.get(id);
-        return (item && item.children);
-    },
-
-    getParentView: function (childView) {
-        var childID = childView.getID(),
-            parentID = this.getParent(childID);
-
-        return this.getView(parentID);
-    },
-
     getViewAtNode: function (node) {
-        return this.getView(node.dataset[DATA_ATTRIBUTE]);
+        return this.ViewRegistry.getView(node.dataset[DATA_ATTRIBUTE]);
     },
 
     getRootNodeMapping: function (parentView, childView) {
@@ -58,7 +36,7 @@ var ViewManager = module.ViewManager = Class.extend({
 
     updateView: function (view) {
         var childNode = view.getNode(),
-            parent = this.getParentView(view),
+            parent = this.ViewRegistry.getParentView(view),
             rootNode = childNode.parentNode,
             childNodeIndex;
 
@@ -83,17 +61,17 @@ var ViewManager = module.ViewManager = Class.extend({
     },
 
     notifyViewAboutAttach: function (viewID) {
-        var view = this.getView(viewID);
+        var view = this.ViewRegistry.getView(viewID);
         this.ViewHelper.notifyAttach(view);
     },
 
     notifyViewAboutDetach: function (viewID) {
-        var view = this.getView(viewID);
+        var view = this.ViewRegistry.getView(viewID);
         this.ViewHelper.notifyDetach(view);
     },
 
     removeViewFromParent: function (view) {
-        var parentView = this.getParentView(view),
+        var parentView = this.ViewRegistry.getParentView(view),
             childViewID = view.getID();
 
         if (parentView) {
@@ -123,7 +101,7 @@ var ViewManager = module.ViewManager = Class.extend({
 
     registerChildForView: function (view, childView) {
         this.ViewRegistry.registerView(childView, view);
-        this.getChildViews(view.getID())
+        this.ViewRegistry.getChildViews(view.getID())
             .push(childView.getID());
     },
 
@@ -142,7 +120,7 @@ var ViewManager = module.ViewManager = Class.extend({
     },
 
     emptyView: function (view) {
-        this.getChildViews(view.getID())
+        this.ViewRegistry.getChildViews(view.getID())
             .forEach(view.removeView, view);
 
         this.ViewRegistry.removeView(view);

@@ -8,10 +8,11 @@ var ViewHelper = module.ViewHelper = Class.extend({
         this.UIEventProxy = undefined;
     },
 
-    setEnv: function (viewManager, uiEventProxy, dom, insurer) {
+    setEnv: function (viewManager, ViewRegistry, uiEventProxy, dom, insurer) {
         this.DOM = dom;
         this.Insurer = insurer;
         this.ViewManager = viewManager;
+        this.ViewRegistry = ViewRegistry;
         this.UIEventProxy = uiEventProxy;
     },
 
@@ -30,13 +31,13 @@ var ViewHelper = module.ViewHelper = Class.extend({
      * @param {View} view
      */
     initializeChildren: function (view) {
-        var children = this.ViewManager.getChildViews(view.getID()),
+        var children = this.ViewRegistry.getChildViews(view.getID()),
             length = children.length,
             i = 0,
             childView;
 
         while (i < length) {
-            childView = this.ViewManager.getView(children[i]);
+            childView = this.ViewRegistry.getView(children[i]);
             childView.initialize();
             i += 1;
         }
@@ -58,13 +59,13 @@ var ViewHelper = module.ViewHelper = Class.extend({
      * @param {View}   view
      */
     paintChildren: function (view) {
-        var children = this.ViewManager.getChildViews(view.getID()),
+        var children = this.ViewRegistry.getChildViews(view.getID()),
             length = children.length,
             i = 0,
             childView;
 
         while (i < length) {
-            childView = this.ViewManager.getView(children[i]);
+            childView = this.ViewRegistry.getView(children[i]);
             this.ViewManager.updateView(childView);
             i += 1;
         }
@@ -119,7 +120,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
         view.attached = true;
         view.onAttach();
 
-        viewManager.getChildViews(view.getID()).forEach(
+        this.ViewRegistry.getChildViews(view.getID()).forEach(
             viewManager.notifyViewAboutAttach, viewManager);
     },
 
@@ -129,7 +130,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
         view.attached = false;
         view.onDetach();
 
-        viewManager.getChildViews(view.getID()).forEach(
+        this.ViewRegistry.getChildViews(view.getID()).forEach(
             viewManager.notifyViewAboutDetach, viewManager);
     },
 
@@ -166,7 +167,7 @@ var ViewHelper = module.ViewHelper = Class.extend({
 
     _emptyAndPreserveChildContext: function (view) {
         var viewID = view.getID(),
-            children = this.ViewManager.getChildViews(viewID);
+            children = this.ViewRegistry.getChildViews(viewID);
         this.ViewManager
             .emptyContextRegistryForView(viewID);
 

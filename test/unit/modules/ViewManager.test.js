@@ -14,7 +14,7 @@ describe('ViewManager', function () {
             var viewId = 'a',
                 view = viewFixtureFactory(viewId);
 
-            assert.notOk(wig.env.ViewManager.getParentView(view));
+            assert.notOk(wig.env.ViewRegistry.getParentView(view));
         });
 
         it('returns parent view', function () {
@@ -23,7 +23,7 @@ describe('ViewManager', function () {
                 parent = viewFixtureFactory(parentId),
                 child = viewFixtureFactory(childId, parentId);
 
-            assert.equal(wig.env.ViewManager.getParentView(child), parent);
+            assert.equal(wig.env.ViewRegistry.getParentView(child), parent);
         });
     });
 
@@ -36,7 +36,7 @@ describe('ViewManager', function () {
                 view: view
             });
 
-            assert.equal(wig.env.ViewManager.getView(id), view);
+            assert.equal(wig.env.ViewRegistry.getView(id), view);
         });
     });
 

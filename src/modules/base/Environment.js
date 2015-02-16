@@ -15,13 +15,13 @@ var Environment = wig.module.Environment = Class.extend({
             this.ViewRegistry, this.Dom, this.Selection);
 
         this.UIEventProxy = new UIEventProxy(
-            this.ViewHelper, this.Dom, this.ViewManager);
+            this.ViewHelper, this.Dom, this.ViewRegistry);
 
         this.initialize();
     },
 
     initialize: function () {
-        this.ViewHelper.setEnv(this.ViewManager,
+        this.ViewHelper.setEnv(this.ViewManager, this.ViewRegistry,
             this.UIEventProxy, this.Dom, this.Insurer);
     },
 
