@@ -1,11 +1,11 @@
 {
-  "name": "wigjs",
+  "name": "wig",
   "version": "0.3.0",
-  "description": "Minimalistic, scalable, extensible, dependency-less Front-end factory for HTML5 applications",
+  "description": "Minimalistic, scalable, extensible, dependency-less Widget factory for HTML5 applications",
   "main": "./wig.js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:benqus/wig.git"
+    "url": "git@github.com:peruke/wig.git"
   },
   "scripts": {
     "test": "./node_modules/.bin/grunt test",
@@ -16,7 +16,7 @@
     "wig",
     "rendering"
   ],
-  "author": "Bence Kormos <ben.kormos@gmail.com>",
+  "author": "Peruke <https://github.com/peruke>",
   "license": "MIT",
   "devDependencies": {
     "chai": "^1.10.0",
